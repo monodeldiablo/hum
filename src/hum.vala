@@ -21,7 +21,8 @@
  */
 
 using GLib;
-//using DBus;
+using DBus;
+using Tracker
 using Gst;
 
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
@@ -50,7 +51,7 @@ namespace Hum
 		// This is an indicator of whether the track is currently playing or not. 
 		// FIXME: Shouldn't this be more global, like the player's state? And it 
 		//        should also be an enum. 
-		public bool status { get; set; }
+		public bool playing { get; set; }
 		
 		public Track (construct string! uri)
 		{
@@ -63,6 +64,7 @@ namespace Hum
 			message ("%s: playing...", uri);
 			player.set ("uri", uri);
 			player.set_state (Gst.State.PLAYING);
+			this.playing = true;
 		}
 		
 		public void pause ()
@@ -77,10 +79,14 @@ namespace Hum
 			// FIXME: GStreamer code goes here. 
 			message ("%s: stopped.", uri);
 			player.set_state (Gst.State.READY);
+			this.playing = false
 		}
 	}
 	
 	// Playlists can be either tag-, file- or search-based in nature. 
+	// FIXME: Nah. Playlists should be file-based only. Collections are more 
+	//        likely what I mean by tag- and search-based, since in that case
+	//        order doesn't matter.
 	enum ListType {Tag, File, Search}
 	
 	// FIXME: This should implement some doubly-linked list interface. 
@@ -168,8 +174,8 @@ namespace Hum
 			message ("Player instantiated.");
 			
 			p.list = new Playlist ("Test");
-			var t1 = new Track ("file://home/brian/Desktop/YellowLedbetter.mp3");
-			var t2 = new Track ("file://home/brian/Desktop/Porch.mp3");
+			var t1 = new Track ("file://home/brian/Audio/YellowLedbetter.mp3");
+			var t2 = new Track ("file://home/brian/Audio/Porch.mp3");
 			
 			// FIXME: THIS IS UGLY!!!
 			t1.player = p.player;

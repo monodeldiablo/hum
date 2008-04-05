@@ -21,8 +21,8 @@
  */
 
 using GLib;
-using DBus;
-using Tracker
+//using DBus;
+//using Tracker
 using Gst;
 
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to

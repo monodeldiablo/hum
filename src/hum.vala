@@ -2,7 +2,7 @@
  * hum.vala
  * This file is part of Hum
  *
- * Copyright (C) 2007 - Brian Davis
+ * Copyright (C) 2007-2008 by Brian Davis
  *
  * Hum is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ namespace Hum
 			// FIXME: GStreamer code goes here. 
 			message ("%s: stopped.", uri);
 			player.set_state (Gst.State.READY);
-			this.playing = false
+			this.playing = false;
 		}
 	}
 	
@@ -206,6 +206,8 @@ namespace Hum
 			p.list.next ();
 			p.list.next ();
 			p.list.list.nth_data(p.list.active).play ();
+
+			return 0;
 		}
 	}
 }

@@ -79,7 +79,7 @@ namespace Hum
 			// FIXME: GStreamer code goes here. 
 			message ("%s: stopped.", uri);
 			player.set_state (Gst.State.READY);
-			this.playing = false;
+			this.playing = false
 		}
 	}
 	
@@ -161,7 +161,7 @@ namespace Hum
 			
 			// Initialize GStreamer.
 			// FIXME: I think this is how it's done, but I'm not sure...
-			if (init_check(0, args[0]))
+			if (Init.check(0, args[0]))
 			{
 				message ("GStreamer library initialized.");
 			}
@@ -206,8 +206,6 @@ namespace Hum
 			p.list.next ();
 			p.list.next ();
 			p.list.list.nth_data(p.list.active).play ();
-
-			return 0;
 		}
 	}
 }

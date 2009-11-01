@@ -25,6 +25,12 @@ using GLib;
 //using Tracker
 using Gst;
 
+// FIXME: This should probably be a DBus backend, to completely decouple from
+//        the interface. Also, a better arrangement should be found for the
+//        current debacle whereby each track owns a reference to the player.
+//        It's perfectly reasonable the play(), pause(), next(), and prev() are
+//        all actions owned by the player and/or playlist, not a given track.
+
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
 //        Gst.Decodebin in the future (cross-fading, etc.). 
 
@@ -150,6 +156,8 @@ namespace Hum
 
 		Player ()
 		{
+			// FIXME: This should also construct the bus through which all messages and
+			//        state changes are sent.
 			player = ElementFactory.make ("playbin", "player");
 		}
 		
@@ -160,6 +168,8 @@ namespace Hum
 			message ("GStreamer library initialized.");
 			
 			// FIXME: Do I need to start the mainloop here?
+			var context = new GLib.MainContext();
+			var loop = new GLib.MainLoop(context, true);
 
 			var p = new Player();
 			message ("Player instantiated.");
@@ -179,7 +189,8 @@ namespace Hum
 			
 			p.list.active = 0;
 			p.list.list.nth_data(p.list.active).play ();
-			Thread.usleep(123456789);
+			//Thread.usleep(123456789);
+			loop.run();
 			
 			p.list.list.nth_data(p.list.active).pause ();
 			p.list.list.nth_data(p.list.active).play ();

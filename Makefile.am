@@ -1,49 +1,32 @@
 NULL = 
 
-AUTOMAKE_OPTIONS = subdir-objects
+#Build in these directories:
 
 SUBDIRS = \
+	src \
 	po \
 	$(NULL)
 
-AM_CPPFLAGS = \
-	$(HUM_CFLAGS) \
-	-include $(CONFIG_HEADER) \
-	$(NULL)
-
-BUILT_SOURCES = src/hum.vala.stamp
-
-bin_PROGRAMS = hum
-
-hum_VALASOURCES = \
-	src/hum.vala \
-	$(NULL)
-
-hum_SOURCES = \
-	$(hum_VALASOURCES:.vala=.c) \
-	$(hum_VALASOURCES:.vala=.h) \
-	$(NULL)
-
-src/hum.vala.stamp: $(hum_VALASOURCES)
-	$(VALAC) --pkg gtk+-2.0 --pkg gstreamer-0.10 --basedir $(top_srcdir) $^
-	touch $@
-
-hum_LDADD = \
-	$(HUM_LIBS) \
+humdocdir = ${prefix}/doc/hum
+humdoc_DATA = \
+	ChangeLog \
+	README \
+	COPYING \
+	AUTHORS \
+	INSTALL \
+	NEWS\
 	$(NULL)
 
 EXTRA_DIST = \
+	$(humdoc_DATA) \
 	intltool-extract.in \
-	intltool-update.in \
 	intltool-merge.in \
-	$(hum_VALASOURCES) \
-	src/hum.vala.stamp \
+	intltool-update.in\
 	$(NULL)
 
 DISTCLEANFILES = \
 	intltool-extract \
-	intltool-update \
 	intltool-merge \
+	intltool-update \
 	po/.intltool-merge-cache \
 	$(NULL)
-

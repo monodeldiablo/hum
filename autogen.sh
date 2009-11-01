@@ -4,6 +4,6 @@
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 
-PKG_NAME="humdev"
+PKG_NAME="hum"
 
 . gnome-autogen.sh

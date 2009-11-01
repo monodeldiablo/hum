@@ -2,7 +2,7 @@
  * hum.vala
  * This file is part of Hum
  *
- * Copyright (C) 2007-2008 by Brian Davis
+ * Copyright (C) 2007-2009 by Brian Davis
  *
  * Hum is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace Hum
 		//        should also be an enum. 
 		public bool playing { get; set; }
 		
-		public Track (construct string! uri)
+		public Track (string uri)
 		{
 			// FIXME: Given a URI, GStreamer should populate all the properties. 
 		}
@@ -87,13 +87,13 @@ namespace Hum
 	// FIXME: Nah. Playlists should be file-based only. Collections are more 
 	//        likely what I mean by tag- and search-based, since in that case
 	//        order doesn't matter.
-	enum ListType {Tag, File, Search}
+	public enum ListType {Tag, File, Search}
 	
 	// FIXME: This should implement some doubly-linked list interface. 
 	public class Playlist : GLib.Object//, GeeList<Track>
 	{
 		public string name { get; set; }
-		public List<Track> list;
+		public GLib.List<Track> list;
 		
 		// The playlist type (i.e. tag-, file- or search-based).
 		public ListType type; 
@@ -107,7 +107,7 @@ namespace Hum
 		// currently active, this is -1. 
 		public int active; 
 		
-		public Playlist (construct string! name) {}
+		public Playlist (string name) {}
 		
 		// Activate the previous item, if an item is active. If the first item is 
 		// active, wrap to the end. 
@@ -155,16 +155,17 @@ namespace Hum
 		static int main (string[] args)
 		{
 			// Initialize GLib.
-			Thread.init ();
+			//Thread.init ();
 			
 			message ("GLib threading started.");
 			
 			// Initialize GStreamer.
 			// FIXME: I think this is how it's done, but I'm not sure...
-			if (Init.check(0, args[0]))
-			{
+			//if (Gst.init_check(0, ref args[0]))
+			//{
+			Gst.init(ref args);
 				message ("GStreamer library initialized.");
-			}
+			//}
 			
 			MainLoop loop = new MainLoop (null, false);
 			loop.run ();

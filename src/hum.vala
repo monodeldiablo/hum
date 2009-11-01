@@ -56,13 +56,14 @@ namespace Hum
 		public Track (string uri)
 		{
 			// FIXME: Given a URI, GStreamer should populate all the properties. 
+			this.uri = uri;
 		}
 		
 		public void play ()
 		{
 			// FIXME: GStreamer code goes here. 
-			message ("%s: playing...", uri);
-			player.set ("uri", uri);
+			message ("%s: playing...", this.uri);
+			player.set ("uri", this.uri);
 			player.set_state (Gst.State.PLAYING);
 			this.playing = true;
 		}
@@ -70,14 +71,14 @@ namespace Hum
 		public void pause ()
 		{
 			// FIXME: GStreamer code goes here. 
-			message ("%s: paused.", uri);
+			message ("%s: paused.", this.uri);
 			player.set_state (Gst.State.PAUSED);
 		}
 		
 		public void stop ()
 		{
 			// FIXME: GStreamer code goes here. 
-			message ("%s: stopped.", uri);
+			message ("%s: stopped.", this.uri);
 			player.set_state (Gst.State.READY);
 			this.playing = false;
 		}
@@ -154,29 +155,18 @@ namespace Hum
 		
 		static int main (string[] args)
 		{
-			// Initialize GLib.
-			//Thread.init ();
-			
-			message ("GLib threading started.");
-			
 			// Initialize GStreamer.
-			// FIXME: I think this is how it's done, but I'm not sure...
-			//if (Gst.init_check(0, ref args[0]))
-			//{
 			Gst.init(ref args);
-				message ("GStreamer library initialized.");
-			//}
+			message ("GStreamer library initialized.");
 			
-			MainLoop loop = new MainLoop (null, false);
-			loop.run ();
-			
+			// FIXME: Do I need to start the mainloop here?
+
 			var p = new Player();
-			
 			message ("Player instantiated.");
 			
 			p.list = new Playlist ("Test");
-			var t1 = new Track ("file://home/brian/Audio/YellowLedbetter.mp3");
-			var t2 = new Track ("file://home/brian/Audio/Porch.mp3");
+			var t1 = new Track ("file:///home/brian/Audio/Girl.mp3");
+			var t2 = new Track ("file:///home/brian/Audio/Lengths.mp3");
 			
 			// FIXME: THIS IS UGLY!!!
 			t1.player = p.player;
@@ -189,6 +179,7 @@ namespace Hum
 			
 			p.list.active = 0;
 			p.list.list.nth_data(p.list.active).play ();
+			Thread.usleep(123456789);
 			
 			p.list.list.nth_data(p.list.active).pause ();
 			p.list.list.nth_data(p.list.active).play ();

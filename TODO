@@ -1,5 +1,7 @@
 Goals for 1.0
 
+USABILITY
+
 Before I (or anybody, for that matter) will be happy releasing Hum for public
 consumption, the following goals must be met:
 
@@ -29,4 +31,56 @@ consumption, the following goals must be met:
 	  playlist to repeat. I can't be expected to sit by the computer and double
 	  click every time Britney Spears' "Toxic" finishes.
 	* Users must be able to specify the volume for the application. By default,
-	  though, the volume knob should be set to 11. 
+	  though, the volume knob should be set to 11.
+
+DESIGN
+
+In order to meet these goals, and to make Hum fun and easy to hack on later,
+some design considerations should be met:
+
+	* The front end and back end should be fully decoupled, with the back end
+	  being a DBus service that has a few simple, playback-specific capabilities.
+
+	* The player, not the tracks, should manage playback. This is a change from
+	  the current design. The input to the player will always be a playlist (even
+	  if that playlist contains only a single track), and the player will execute
+	  actions against this playlist.
+
+	* The front end should carry the Tracker search interface, freeing up the
+	  back end to be simpler and more focused (i.e. the back end need only know
+	  about the URIs to play, and their order, not the bulk of the metadata
+	  returned by a given search).
+
+To this end, the player will export the following verbs over a public DBus
+interface:
+
+	ORDER
+	-----
+	* add(uri, [pos])   - add the track represented by URI to the playlist,
+	                      optionally at *pos* in the list
+	* move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
+	* remove(pos)       - delete the track at *pos* in the list
+	* clear()           - remove all contents of the playlist
+
+
+	PLAYBACK
+	--------
+	* play([pos])       - start playback of the items in the playlist, in order,
+	                      optionally starting at *pos* in the list (if playback is
+			      paused and *pos* is not specified, resume playback)
+	* pause()           - pauses playback
+	* stop()            - halts playback, resetting the list pointer
+	* next()            - move the list pointer to the next track in the list,
+	                      playing the next track if the current track is playing
+	* prev()            - move the list pointer to the previous track in the list,
+	                      playing the previous track if the current track is
+			      playing
+	* seek(usec)        - seek to *usec* in the track
+
+
+	STATE
+	-----
+	* set_loop(bool)    - toggles playlist repeat
+	* set_random(bool)  - toggles playlist shuffle
+	* set_fade(bool)    - toggles playlist crossfading
+	* set_volume(value) - adjusts playback volume

@@ -25,12 +25,6 @@ using GLib;
 //using Tracker
 using Gst;
 
-// FIXME: This should probably be a DBus backend, to completely decouple from
-//        the interface. Also, a better arrangement should be found for the
-//        current debacle whereby each track owns a reference to the player.
-//        It's perfectly reasonable the play(), pause(), next(), and prev() are
-//        all actions owned by the player and/or playlist, not a given track.
-
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
 //        Gst.Decodebin in the future (cross-fading, etc.). 
 
@@ -182,14 +176,13 @@ namespace Hum
 			t1.player = p.player;
 			t2.player = p.player;
 			
-			p.list.list.append (t1);
 			p.list.list.append (t2);
+			p.list.list.append (t1);
 			
 			message ("Tracks 1 & 2 appended to playlist.");
 			
 			p.list.active = 0;
 			p.list.list.nth_data(p.list.active).play ();
-			//Thread.usleep(123456789);
 			loop.run();
 			
 			p.list.list.nth_data(p.list.active).pause ();

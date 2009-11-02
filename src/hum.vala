@@ -368,7 +368,7 @@ namespace Hum
 		// nothing.
 		public void seek (int64 usec)
 		{
-			pipeline.seek_simple (Gst.Format.TIME, Gst.SeekFlags.NONE, usec);
+			pipeline.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, usec);
 			
 			// FIXME: What's the token for int64??
 			//message ("seeked to %d", usec);

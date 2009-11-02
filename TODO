@@ -58,8 +58,8 @@ interface:
 	-----
 	x add(uri, [pos])   - add the track represented by URI to the playlist,
 	                      optionally at *pos* in the list
-	* move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
-	* remove(pos)       - delete the track at *pos* in the list
+	~ move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
+	~ remove(pos)       - delete the track at *pos* in the list
 	x clear()           - remove all contents of the playlist
 
 
@@ -75,7 +75,7 @@ interface:
 	x prev()            - move the list pointer to the previous track in the list,
 	                      playing the previous track if the current track is
 			      playing
-	* seek(usec)        - seek to *usec* in the track
+	x seek(usec)        - seek to *usec* in the track
 	* set_volume(value) - adjusts playback volume
 
 
@@ -101,7 +101,7 @@ current state:
 
 	PLAYBACK
 	--------
-	* get_status()      - returns one of "playing", "paused", or "ready",
+	~ get_status()      - returns one of "playing", "paused", or "ready",
 	                      corresponding to GStreamer element states
 	* get_track()       - returns the position of the list pointer
 	x get_progress()    - returns the position of playback in a given track (if

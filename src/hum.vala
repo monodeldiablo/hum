@@ -208,6 +208,18 @@ namespace Hum
 		// Delete the track at position *pos* from the playlist.
 		public void remove (int pos)
 		{
+			if (pos == track && pipeline.current_state == Gst.State.PLAYING)
+			{
+				stop ();
+			}
+
+			// If we remove something ahead of the currently-selected track, its
+			// position changes.
+			if (pos < track)
+			{
+				track -= 1;
+			}
+
 			playlist.remove (playlist.nth_data (pos));
 			
 			message ("removed the track at position %d from the playlist", pos);
@@ -217,6 +229,28 @@ namespace Hum
 		public void move (int pos1, int pos2)
 		{
 			string uri = playlist.nth_data (pos1);
+
+			// Update the track pointer if we move a track while it's playing.
+			if (pos1 == track)
+			{
+				track = pos2;
+			}
+
+			// If we take a track from above the currently-playing track, we need to
+			// decrement the track pointer.
+			else if (pos1 < track && pos2 > track)
+			{
+				track -= 1;
+			}
+
+			// If we move a track from below the currently-playing track to above or at
+			// its position, we need to increment the track pointer.
+			else if (pos1 > track && pos2 <= track)
+			{
+				track += 1;
+			}
+		
+			// Actually perform the move.
 			remove (pos1);
 			add (uri, pos2);
 			
@@ -226,6 +260,7 @@ namespace Hum
 		// Remove the contents of the playlist.
 		public void clear ()
 		{
+			stop ();
 			playlist = new GLib.List<string> ();
 			
 			message ("cleared the playlist");

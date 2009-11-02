@@ -56,23 +56,23 @@ interface:
 
 	ORDER
 	-----
-	* add(uri, [pos])   - add the track represented by URI to the playlist,
+	x add(uri, [pos])   - add the track represented by URI to the playlist,
 	                      optionally at *pos* in the list
 	* move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
 	* remove(pos)       - delete the track at *pos* in the list
-	* clear()           - remove all contents of the playlist
+	x clear()           - remove all contents of the playlist
 
 
 	PLAYBACK
 	--------
-	* play([pos])       - start playback of the items in the playlist, in order,
+	x play([pos])       - start playback of the items in the playlist, in order,
 	                      optionally starting at *pos* in the list (if playback is
 			      paused and *pos* is not specified, resume playback)
-	* pause()           - pauses playback
-	* stop()            - halts playback, resetting the list pointer
-	* next()            - move the list pointer to the next track in the list,
+	x pause()           - pauses playback
+	x stop()            - halts playback, resetting the list pointer
+	x next()            - move the list pointer to the next track in the list,
 	                      playing the next track if the current track is playing
-	* prev()            - move the list pointer to the previous track in the list,
+	x prev()            - move the list pointer to the previous track in the list,
 	                      playing the previous track if the current track is
 			      playing
 	* seek(usec)        - seek to *usec* in the track
@@ -88,7 +88,7 @@ interface:
 
 	OPERATION
 	---------
-	* quit()            - shut down the back end (usually on front end shutdown)
+	x quit()            - shut down the back end (usually on front end shutdown)
 
 The back end will also have an introspection interface that will export the
 following verbs to provide a means for front ends to accurately reflect the
@@ -104,7 +104,7 @@ current state:
 	* get_status()      - returns one of "playing", "paused", or "ready",
 	                      corresponding to GStreamer element states
 	* get_track()       - returns the position of the list pointer
-	* get_progress()    - returns the position of playback in a given track (if
+	x get_progress()    - returns the position of playback in a given track (if
 	                      relevant)
 	* get_volume()      - returns playback volume setting
 

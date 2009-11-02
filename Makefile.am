@@ -4,24 +4,25 @@ NULL =
 
 SUBDIRS = \
 	src \
+	data \
 	po \
 	$(NULL)
 
-humdocdir = ${prefix}/doc/hum
+humdocdir = ${docdir}
 humdoc_DATA = \
 	ChangeLog \
 	README \
 	COPYING \
 	AUTHORS \
 	INSTALL \
-	NEWS\
+	NEWS \
 	$(NULL)
 
 EXTRA_DIST = \
 	$(humdoc_DATA) \
 	intltool-extract.in \
 	intltool-merge.in \
-	intltool-update.in\
+	intltool-update.in \
 	$(NULL)
 
 DISTCLEANFILES = \

@@ -1,4 +1,4 @@
-AC_INIT([hum], [0.1.0], [brian.william.davis@gmail.com], [hum])
+AC_INIT([Hum: The Low-Calorie Music Manager], [0.1.0], [brian.william.davis@gmail.com], [hum], [http://launchpad.net/hum])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([dist-bzip2])
@@ -12,7 +12,7 @@ AC_PROG_LIBTOOL
 AC_PATH_PROG(VALAC, valac, valac)
 AC_SUBST(VALAC)
 
-AH_TEMPLATE([GETTEXT_PACKAGE], [Package name for gettext])
+AH_TEMPLATE([GETTEXT_PACKAGE], [Hum: The Low-Calorie Music Manager])
 GETTEXT_PACKAGE=hum
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE")
 AC_SUBST(GETTEXT_PACKAGE)
@@ -34,6 +34,7 @@ AC_SUBST(HUM_LIBS)
 
 AC_CONFIG_FILES([Makefile
         src/Makefile
+	data/Makefile
 	po/Makefile.in])
 
 AC_OUTPUT

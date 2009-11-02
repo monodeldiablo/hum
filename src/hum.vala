@@ -27,22 +27,11 @@ using Gst;
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
 //        Gst.Decodebin in the future (cross-fading, etc.).
 
-// Playlists can be either tag-, file- or search-based in nature. 
-// FIXME: Nah. Playlists should be file-based only. Collections are more 
-//        likely what I mean by tag- and search-based, since in that case
-//        order doesn't matter.
-//public enum ListType {Tag, File, Search}
-// The playlist type (i.e. tag-, file- or search-based).
-//public ListType type; 
-
+// NOTES REGARDING COLLECTIONS THAT I CAN'T FIND A HOME FOR...
+//
 // Physical URIs will feature the default 'file://' prefix.
 // Search URIs will be prefixed with something like 'search://term[+term...]'.
 // Tag URIs will be prefixed with something like 'tags://term[+term...]'.
-//public string uri; 
-
-// This is the index number of the currently selected track. If no track is
-// currently active, this is -1. 
-//public int active; 
 
 namespace Hum
 {
@@ -56,19 +45,28 @@ namespace Hum
 		// FIXME: This should implement some doubly-linked list interface. 
 		public GLib.List<string> playlist;
 
-		///////////
-		// STATE //
-		///////////
+		//////////////
+		// SETTINGS //
+		//////////////
+		
+		// FIXME: These settings should probably be persisted using GConf or
+		//        something, since users are likely to have a preference.
 
 		// Toggle playlist looping (default: true).
-		public bool loop;
+		public bool repeat { get; set; }
+
+		// Toggle playlist shuffle (default: false).
+		public bool shuffle { get; set; }
+
+		// Toggle playlist crossfading (default: false).
+		public bool fade { get; set; }
 
 		//////////////
 		// PLAYBACK //
 		//////////////
 
 		// The index of the currently-selected track.
-		public int position;
+		public int track { get; set; }
 
 		///////////////
 		// OPERATION //
@@ -76,11 +74,17 @@ namespace Hum
 
 		Player ()
 		{
+			// FIXME: See the FIXME under SETTINGS, above.
+			repeat = true;
+			shuffle = false;
+			fade = false;
+
+			// Initialize the playlist pointer to the top of the list.
+			track = 0;
+
 			// FIXME: This should also construct the bus through which all messages and
 			//        state changes are sent.
 			pipeline = ElementFactory.make ("playbin", "pipeline");
-			loop = true;
-			position = 0;
 			pipeline.set_state (Gst.State.READY);
 			
 			message ("Player instantiated.");
@@ -106,6 +110,7 @@ namespace Hum
 				
 				message ("appended '%s' to the playlist", uri);
 			}
+			
 			else
 			{
 				playlist.insert (uri, pos);
@@ -156,24 +161,25 @@ namespace Hum
 				if (current_state == Gst.State.PAUSED)
 				{
 					pipeline.set_state (Gst.State.PLAYING);
+
+					message ("resuming playback of the track at position %d", track);
 				}
+				
 				else if (current_state == Gst.State.READY)
 				{
-					// FIXME: Would it be less redundant to just use "play (0)" here?
-					pipeline.set ("uri", playlist.nth_data (position));
-					pipeline.set_state (Gst.State.PLAYING);
+					play (0);
 				}
-
-				message ("playing the track at position %d", position);
 			}
+			
 			else
 			{
-				pipeline.set_state (Gst.State.READY);
-				position = pos;
-				pipeline.set ("uri", playlist.nth_data (position));
+				// NOTE: This results in a reassignment (postion = 0, then pos).
+				stop ();
+				track = pos;
+				pipeline.set ("uri", playlist.nth_data (track));
 				pipeline.set_state (Gst.State.PLAYING);
-
-				message ("playing the track at position %d", position);
+			
+				message ("playing the track at position %d", track);
 			}
 		}
 
@@ -189,62 +195,52 @@ namespace Hum
 		// playlist.
 		public void stop ()
 		{
-			position = 0;
+			track = 0;
 			pipeline.set_state (Gst.State.READY);
 			
 			message ("stopped playback");
 		}
 
-		// Play the next track if the current state is PLAYING. If the current track
-		// is the last track in the playlist and looping is enabled, play the first
-		// item in the playlist. If not, do nothing.
+		// Play the next track in the playlist. If the current track is the last
+		// track in the playlist and looping is enabled, play the first track in the
+		// playlist.
 		public void next ()
 		{
-			var current_state = pipeline.current_state;
-
-			if (current_state == Gst.State.PLAYING)
+			if (track == playlist.length ())
 			{
-				if (position == playlist.length ())
+				if (repeat)
 				{
-					if (loop)
-					{
-						play (0);
-					}
-				}
-
-				else
-				{
-					play (position + 1);
+					play (0);
 				}
 			}
 
-			message ("skipped to the next track in the playlist at position %d", position);
+			else
+			{
+				play (track + 1);
+			}
+
+			message ("skipped to the next track in the playlist at position %d", track);
 		}
 
-		// Play the previous track if the current state is PLAYING. If the current
-		// track is the first track in the playlist and looping is enabled, play the
-		// last item in the playlist. If not, do nothing.
+		// Play the previous track in the playlist. If the current track is the
+		// first track in the playlist and looping is enabled, play the last track in
+		// the playlist.
 		public void prev ()
 		{
-			var current_state = pipeline.current_state;
-
-			if (current_state == Gst.State.PLAYING)
+			if (track == 0)
 			{
-				if (position == 0)
+				if (repeat)
 				{
-					if (loop)
-					{
-						play ((int) playlist.length ());
-					}
-				}
-
-				else
-				{
-					play (position - 1);
+					play ((int) playlist.length ());
 				}
 			}
 
-			message ("skipped to the previous track in the playlist at position %d", position);
+			else
+			{
+				play (track - 1);
+			}
+
+			message ("skipped to the previous track in the playlist at position %d", track);
 		}
 
 		// Seek to *usec* in the currently-playing track. If no track is playing, do
@@ -256,6 +252,46 @@ namespace Hum
 			// FIXME: What's the token for int64??
 			//message ("seeked to %d", usec);
 		}
+
+		// Return the current track progress in usec.
+		public int64 get_progress ()
+		{
+			int64 position;
+			Gst.Format format = Gst.Format.TIME;
+
+			if (pipeline.query_position (ref format, out position))
+			{
+				return position;
+			}
+			
+			else
+			{
+				return -1;
+			}
+		}
+
+		// Return the current playback state.
+		public Gst.State get_state ()
+		{
+			return pipeline.current_state;
+		}
+
+		// Adjust playback volume.
+		public void set_volume (int level)
+		{
+			// FIXME: How do you do this?
+		}
+
+		// Query playback volume.
+		public int get_volume ()
+		{
+			// FIXME: And how do you do this?
+			return 0;
+		}
+
+		///////////////
+		// EXECUTION //
+		///////////////
 		
 		static int main (string[] args)
 		{

@@ -76,20 +76,19 @@ interface:
 	                      playing the previous track if the current track is
 			      playing
 	* seek(usec)        - seek to *usec* in the track
-
-
-	STATE
-	-----
-	* set_loop(bool)    - toggles playlist repeat
-	* set_random(bool)  - toggles playlist shuffle
-	* set_fade(bool)    - toggles playlist crossfading
 	* set_volume(value) - adjusts playback volume
+
+
+	SETTINGS
+	--------
+	* set_repeat(bool)  - toggles playlist repeat
+	* set_shuffle(bool) - toggles playlist shuffle
+	* set_fade(bool)    - toggles playlist crossfading
 
 
 	OPERATION
 	---------
 	* quit()            - shut down the back end (usually on front end shutdown)
-	* restart()         - restart the back end (manual reset)
 
 The back end will also have an introspection interface that will export the
 following verbs to provide a means for front ends to accurately reflect the
@@ -107,11 +106,11 @@ current state:
 	* get_track()       - returns the position of the list pointer
 	* get_progress()    - returns the position of playback in a given track (if
 	                      relevant)
+	* get_volume()      - returns playback volume setting
 
 
-	STATE
-	-------------
+	SETTINGS
+	--------
 	* get_loop()        - returns playlist repeat setting
 	* get_random()      - returns playlist shuffle setting
 	* get_fade()        - returns playlist crossfading setting
-	* get_volume()      - returns playback volume setting

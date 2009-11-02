@@ -7,6 +7,7 @@ AM_CPPFLAGS = \
 
 AM_VALAFLAGS = \
 	--pkg gstreamer-0.10 \
+	--pkg dbus-glib-1 \
 	$(NULL)
 
 bin_PROGRAMS = hum

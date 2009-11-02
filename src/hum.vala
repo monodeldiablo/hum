@@ -21,7 +21,7 @@
  */
 
 using GLib;
-//using DBus;
+using DBus;
 using Gst;
 
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
@@ -36,10 +36,17 @@ using Gst;
 namespace Hum
 {
 	// This is the player backend.
+	[DBus (name = "org.washedup.Hum")]
 	public class Player : GLib.Object
 	{
+		// The application main loop.
+		private GLib.MainLoop mainloop;
+
 		// The GStreamer playback pipeline.
-		public Element pipeline { get; set; }
+		private Gst.Element pipeline { get; set; }
+
+		// The GStreamer communication bus.
+		private Gst.Bus bus { get; set; }
 		
 		// The playlist, which is just a linked list of URIs.
 		// FIXME: This should implement some doubly-linked list interface. 
@@ -72,8 +79,10 @@ namespace Hum
 		// OPERATION //
 		///////////////
 
-		Player ()
+		Player (string[] args)
 		{
+			mainloop = new GLib.MainLoop (null, false);
+			
 			// FIXME: See the FIXME under SETTINGS, above.
 			repeat = true;
 			shuffle = false;
@@ -82,18 +91,95 @@ namespace Hum
 			// Initialize the playlist pointer to the top of the list.
 			track = 0;
 
-			// FIXME: This should also construct the bus through which all messages and
-			//        state changes are sent.
+			// Initialize GStreamer.
+			Gst.init(ref args);
+			
+			message ("GStreamer library initialized.");
+			
+			// Set up the pipeline for playing and the bus for messages.
 			pipeline = ElementFactory.make ("playbin", "pipeline");
+			bus = pipeline.get_bus ();
+			bus.add_watch (bus_callback);
 			pipeline.set_state (Gst.State.READY);
 			
 			message ("Player instantiated.");
+
+			register_dbus_service ();
+		}
+
+		// Run the application.
+		public void run ()
+		{
+			mainloop.run ();
 		}
 
 		// Tear down the application.
-		// FIXME: Is "MainLoop.quit()" all that's required?
 		public void quit ()
 		{
+			message ("Quitting...");
+
+			pipeline.set_state (Gst.State.NULL);
+			
+			message ("Goodbye!");
+
+			mainloop.quit ();
+		}
+
+		// The master callback that intercepts messages on the pipeline's bus.
+		private bool bus_callback (Gst.Bus bus, Gst.Message message)
+		{
+			switch (message.type)
+			{
+				case Gst.MessageType.ERROR:
+					GLib.Error err;
+					string debug;
+					message.parse_error (out err, out debug);
+					stderr.printf ("Error: %s\n", err.message);
+					break;
+				case MessageType.EOS:
+					next();
+					break;
+				case MessageType.STATE_CHANGED:
+				case MessageType.TAG:
+				default:
+					break;
+			}
+
+			return true;
+		}
+
+		// Register Hum as a DBus service.
+		private void register_dbus_service ()
+		{
+			try
+			{
+				var conn = DBus.Bus.get (DBus.BusType.SESSION);
+
+				dynamic DBus.Object bus = conn.get_object ("org.freedesktop.DBus",
+				                                           "/org/freedesktop/DBus",
+									   "org.freedesktop.DBus");
+
+				uint request_name_result = bus.request_name ("org.washedup.Hum", (uint) 0);
+
+				if (request_name_result == DBus.RequestNameReply.PRIMARY_OWNER)
+				{
+					conn.register_object ("/org/washedup/Hum", this);
+					
+					message ("Successfully registered DBus service!");
+					
+					run ();
+				}
+
+				else
+				{
+					quit ();
+				}
+			}
+
+			catch (DBus.Error e)
+			{
+				stderr.printf ("Shit! %s\n", e.message);
+			}
 		}
 
 		///////////
@@ -206,7 +292,7 @@ namespace Hum
 		// playlist.
 		public void next ()
 		{
-			if (track == playlist.length ())
+			if (track == playlist.length () - 1)
 			{
 				if (repeat)
 				{
@@ -295,23 +381,8 @@ namespace Hum
 		
 		static int main (string[] args)
 		{
-			// Initialize GStreamer.
-			Gst.init(ref args);
-			
-			message ("GStreamer library initialized.");
-			
-			// FIXME: Do I need to start the mainloop here?
-			var context = new GLib.MainContext();
-			var mainloop = new GLib.MainLoop(context, true);
+			new Player(args);
 
-			var p = new Player();
-			
-			p.add ("file:///home/brian/Audio/Girl.mp3");
-			p.add ("file:///home/brian/Audio/Lengths.mp3");
-			
-			p.play ();
-			mainloop.run();
-			
 			return 0;
 		}
 	}

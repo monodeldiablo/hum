@@ -59,21 +59,21 @@ namespace Hum
 		// FIXME: These settings should probably be persisted using GConf or
 		//        something, since users are likely to have a preference.
 
-		// Toggle playlist looping (default: true).
-		public bool repeat { get; set; }
+		// Playlist repeat setting (default: true).
+		public bool repeat;
 
-		// Toggle playlist shuffle (default: false).
-		public bool shuffle { get; set; }
+		// Playlist shuffle setting (default: false).
+		public bool shuffle;
 
-		// Toggle playlist crossfading (default: false).
-		public bool fade { get; set; }
+		// Playlist crossfade setting (default: false).
+		public bool crossfade;
 
 		//////////////
 		// PLAYBACK //
 		//////////////
 
 		// The index of the currently-selected track.
-		public int track { get; set; }
+		public int current_track;
 
 		///////////////
 		// OPERATION //
@@ -86,10 +86,10 @@ namespace Hum
 			// FIXME: See the FIXME under SETTINGS, above.
 			repeat = true;
 			shuffle = false;
-			fade = false;
+			crossfade = false;
 
 			// Initialize the playlist pointer to the top of the list.
-			track = 0;
+			current_track = 0;
 
 			// Initialize GStreamer.
 			Gst.init(ref args);
@@ -186,11 +186,11 @@ namespace Hum
 		// ORDER //
 		///////////
 
-		// Append a new track to the playlist or, if *pos* is specified, insert a new
-		// track at position *pos* in the playlist.
-		public void add (string uri, int pos = -1)
+		// Append a new track to the playlist or, if *position* is specified, insert a new
+		// track at position *position* in the playlist.
+		public void add (string uri, int position = -1)
 		{
-			if (pos == -1)
+			if (position == -1)
 			{
 				playlist.append (uri);
 				
@@ -199,62 +199,70 @@ namespace Hum
 			
 			else
 			{
-				playlist.insert (uri, pos);
+				playlist.insert (uri, position);
 				
-				message ("inserted '%s' at position %d in the playlist", uri, pos);
+				message ("inserted '%s' at position %d in the playlist", uri, position);
 			}
+			
+			// If we add something ahead of the currently-selected track, its position
+			// changes.
+			if (position <= current_track)
+			{
+				current_track += 1;
+			}
+			
 		}
 
-		// Delete the track at position *pos* from the playlist.
-		public void remove (int pos)
+		// Delete the track at position *position* from the playlist.
+		public void remove (int position)
 		{
-			if (pos == track && pipeline.current_state == Gst.State.PLAYING)
+			if (position == current_track && pipeline.current_state == Gst.State.PLAYING)
 			{
 				stop ();
 			}
 
+			playlist.remove (playlist.nth_data (position));
+
 			// If we remove something ahead of the currently-selected track, its
 			// position changes.
-			if (pos < track)
+			if (position < current_track)
 			{
-				track -= 1;
+				current_track -= 1;
 			}
-
-			playlist.remove (playlist.nth_data (pos));
 			
-			message ("removed the track at position %d from the playlist", pos);
+			message ("removed the track at position %d from the playlist", position);
 		}
 
-		// Move a track from position *pos1* to *pos2* in the playlist.
-		public void move (int pos1, int pos2)
+		// Move a track from position *from_position* to *to_position* in the playlist.
+		public void move (int from_position, int to_position)
 		{
-			string uri = playlist.nth_data (pos1);
+			string uri = playlist.nth_data (from_position);
+
+			// Actually perform the move.
+			remove (from_position);
+			add (uri, to_position);
 
 			// Update the track pointer if we move a track while it's playing.
-			if (pos1 == track)
+			if (from_position == current_track)
 			{
-				track = pos2;
+				current_track = to_position;
 			}
 
 			// If we take a track from above the currently-playing track, we need to
 			// decrement the track pointer.
-			else if (pos1 < track && pos2 > track)
+			else if (from_position < current_track && to_position > current_track)
 			{
-				track -= 1;
+				current_track -= 1;
 			}
 
 			// If we move a track from below the currently-playing track to above or at
 			// its position, we need to increment the track pointer.
-			else if (pos1 > track && pos2 <= track)
+			else if (from_position > current_track && to_position <= current_track)
 			{
-				track += 1;
+				current_track += 1;
 			}
-		
-			// Actually perform the move.
-			remove (pos1);
-			add (uri, pos2);
 			
-			message ("moved the track at position %d to position %d within the playlist", pos1, pos2);
+			message ("moved the track at position %d to position %d within the playlist", from_position, to_position);
 		}
 
 		// Remove the contents of the playlist.
@@ -266,16 +274,31 @@ namespace Hum
 			message ("cleared the playlist");
 		}
 
+		// Return the contents of the playlist.
+		// FIXME: Investigate using GLib.Array or something for *playlist* that is
+		//        faster, smaller, less unweildy, and fits this model better.
+		public string[] get_playlist ()
+		{
+			string[] list = new string[playlist.length ()];
+
+			for (int i = 0; i < playlist.length (); i++)
+			{
+				list[i] = playlist.nth_data (i);
+			}
+
+			return list;
+		}
+
 		//////////////
 		// PLAYBACK //
 		//////////////
 
 		// Start playback of the items in the playlist. If playback is paused, resume
-		// playing the selected track. If *pos* is specified, begin playback at *pos*
+		// playing the selected track. If *position* is specified, begin playback at *position*
 		// position in the playist. Otherwise, start at the beginning.
-		public void play (int pos = -1)
+		public void play (int position = -1)
 		{
-			if (pos == -1)
+			if (position == -1)
 			{
 				var current_state = pipeline.current_state;
 
@@ -283,7 +306,7 @@ namespace Hum
 				{
 					pipeline.set_state (Gst.State.PLAYING);
 
-					message ("resuming playback of the track at position %d", track);
+					message ("resuming playback of the track at position %d", current_track);
 				}
 				
 				else if (current_state == Gst.State.READY)
@@ -294,13 +317,13 @@ namespace Hum
 			
 			else
 			{
-				// NOTE: This results in a reassignment (postion = 0, then pos).
+				// NOTE: This results in a reassignment (current_track = 0, then position).
 				stop ();
-				track = pos;
-				pipeline.set ("uri", playlist.nth_data (track));
+				current_track = position;
+				pipeline.set ("uri", playlist.nth_data (current_track));
 				pipeline.set_state (Gst.State.PLAYING);
 			
-				message ("playing the track at position %d", track);
+				message ("playing the track at position %d", current_track);
 			}
 		}
 
@@ -316,7 +339,7 @@ namespace Hum
 		// playlist.
 		public void stop ()
 		{
-			track = 0;
+			current_track = 0;
 			pipeline.set_state (Gst.State.READY);
 			
 			message ("stopped playback");
@@ -327,7 +350,7 @@ namespace Hum
 		// playlist.
 		public void next ()
 		{
-			if (track == playlist.length () - 1)
+			if (current_track == playlist.length () - 1)
 			{
 				if (repeat)
 				{
@@ -337,31 +360,31 @@ namespace Hum
 
 			else
 			{
-				play (track + 1);
+				play (current_track + 1);
 			}
 
-			message ("skipped to the next track in the playlist at position %d", track);
+			message ("skipped to the next track in the playlist at position %d", current_track);
 		}
 
 		// Play the previous track in the playlist. If the current track is the
 		// first track in the playlist and looping is enabled, play the last track in
 		// the playlist.
-		public void prev ()
+		public void previous ()
 		{
-			if (track == 0)
+			if (current_track == 0)
 			{
 				if (repeat)
 				{
-					play ((int) playlist.length ());
+					play ((int) playlist.length () - 1);
 				}
 			}
 
 			else
 			{
-				play (track - 1);
+				play (current_track - 1);
 			}
 
-			message ("skipped to the previous track in the playlist at position %d", track);
+			message ("skipped to the previous track in the playlist at position %d", current_track);
 		}
 
 		// Seek to *usec* in the currently-playing track. If no track is playing, do
@@ -370,8 +393,14 @@ namespace Hum
 		{
 			pipeline.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, usec);
 			
-			// FIXME: What's the token for int64??
-			//message ("seeked to %d", usec);
+			float sec = (float) usec / 1000000000;
+			message ("seeked to %f seconds", sec);
+		}
+
+		// Return the currently selected track.
+		public int get_current_track ()
+		{
+			return current_track;
 		}
 
 		// Return the current track progress in usec.
@@ -408,6 +437,58 @@ namespace Hum
 		{
 			// FIXME: And how do you do this?
 			return 0;
+		}
+
+		//////////////
+		// SETTINGS //
+		//////////////
+
+		// Toggle playlist looping.
+		public void set_repeat (bool do_repeat)
+		{
+			repeat = do_repeat;
+
+			if (repeat)
+			{
+				message ("playlist repeat toggled on");
+			}
+
+			else
+			{
+				message ("playlist repeat toggled off");
+			}
+		}
+
+		// Return the current repeat setting.
+		public bool get_repeat ()
+		{
+			return repeat;
+		}
+
+		// Toggle playlist shuffle.
+		// FIXME: Make this work!
+		public void set_shuffle (bool do_shuffle)
+		{
+			shuffle = do_shuffle;
+		}
+
+		// Return the current shuffle setting.
+		public bool get_shuffle ()
+		{
+			return shuffle;
+		}
+
+		// Toggle playlist crossfading.
+		// FIXME: Make this work!
+		public void set_crossfade (bool do_crossfade)
+		{
+			crossfade = do_crossfade;
+		}
+
+		// Return the current crossfade setting.
+		public bool get_crossfade ()
+		{
+			return crossfade;
 		}
 
 		///////////////

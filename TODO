@@ -58,8 +58,8 @@ interface:
 	-----
 	x add(uri, [pos])   - add the track represented by URI to the playlist,
 	                      optionally at *pos* in the list
-	~ move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
-	~ remove(pos)       - delete the track at *pos* in the list
+	x move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
+	x remove(pos)       - delete the track at *pos* in the list
 	x clear()           - remove all contents of the playlist
 
 
@@ -81,9 +81,9 @@ interface:
 
 	SETTINGS
 	--------
-	* set_repeat(bool)  - toggles playlist repeat
-	* set_shuffle(bool) - toggles playlist shuffle
-	* set_fade(bool)    - toggles playlist crossfading
+	x set_repeat(bool)  - toggles playlist repeat
+	~ set_shuffle(bool) - toggles playlist shuffle
+	~ set_fade(bool)    - toggles playlist crossfading
 
 
 	OPERATION
@@ -96,14 +96,14 @@ current state:
 
 	ORDER
 	-----
-	* get_playlist()    - returns the URIs, in order, in the current playlist
+	x get_playlist()    - returns the URIs, in order, in the current playlist
 	
 
 	PLAYBACK
 	--------
-	~ get_status()      - returns one of "playing", "paused", or "ready",
+	x get_status()      - returns one of "playing", "paused", or "ready",
 	                      corresponding to GStreamer element states
-	* get_track()       - returns the position of the list pointer
+	x get_track()       - returns the position of the list pointer
 	x get_progress()    - returns the position of playback in a given track (if
 	                      relevant)
 	* get_volume()      - returns playback volume setting
@@ -111,6 +111,6 @@ current state:
 
 	SETTINGS
 	--------
-	* get_loop()        - returns playlist repeat setting
-	* get_random()      - returns playlist shuffle setting
-	* get_fade()        - returns playlist crossfading setting
+	x get_repeat()      - returns playlist repeat setting
+	x get_shuffle()     - returns playlist shuffle setting
+	x get_fade()        - returns playlist crossfading setting

@@ -1,0 +1,7 @@
+*.c
+*.h
+*.o
+*.stamp
+*Makefile
+*Makefile.in
+*Makefile.in.in

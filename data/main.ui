@@ -1,7 +1,100 @@
-<?xml version="1.0" ?>
-<!DOCTYPE glade-interface
-  SYSTEM 'glade-2.0.dtd'>
-<!--*- mode: xml -*--><interface>
+<?xml version="1.0"?>
+<!--*- mode: xml -*-->
+<interface>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">1000000</property>
+    <property name="lower">0</property>
+    <property name="page_increment">1000</property>
+    <property name="step_increment">1000</property>
+    <property name="page_size">10</property>
+    <property name="value">0</property>
+  </object>
+  <object class="GtkUIManager" id="uimanager1">
+    <child>
+      <object class="GtkActionGroup" id="actiongroup1">
+        <child>
+          <object class="GtkAction" id="playlist_menu">
+            <property name="name">playlist_menu</property>
+            <property name="label" translatable="yes">_Playlist</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="new_playlist_menu_item">
+            <property name="stock_id" translatable="yes">gtk-new</property>
+            <property name="name">new_playlist_menu_item</property>
+            <property name="tooltip" translatable="yes">Create a new playlist</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="open_playlist_menu_item">
+            <property name="stock_id" translatable="yes">gtk-open</property>
+            <property name="name">open_playlist_menu_item</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="save_playlist_menu_item">
+            <property name="stock_id" translatable="yes">gtk-save</property>
+            <property name="name">save_playlist_menu_item</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="save_playlist_as_menu_item">
+            <property name="stock_id" translatable="yes">gtk-save-as</property>
+            <property name="name">save_playlist_as_menu_item</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="quit_menu_item">
+            <property name="stock_id" translatable="yes">gtk-quit</property>
+            <property name="name">quit_menu_item</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="view_menu">
+            <property name="name">view_menu</property>
+            <property name="label" translatable="yes">_View</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="toggle_compact_menu_item">
+            <property name="name">toggle_compact_menu_item</property>
+            <property name="tooltip" translatable="yes">Toggle compact mode</property>
+            <property name="label" translatable="yes">Compact Mode</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="help_menu">
+            <property name="name">help_menu</property>
+            <property name="label" translatable="yes">_Help</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="about_menu_item">
+            <property name="stock_id" translatable="yes">gtk-about</property>
+            <property name="name">about_menu_item</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <ui>
+      <menubar name="menubar">
+        <menu action="playlist_menu">
+          <menuitem action="new_playlist_menu_item"/>
+          <menuitem action="open_playlist_menu_item"/>
+          <menuitem action="save_playlist_menu_item"/>
+          <menuitem action="save_playlist_as_menu_item"/>
+          <separator/>
+          <menuitem action="quit_menu_item"/>
+        </menu>
+        <menu action="view_menu">
+          <menuitem action="toggle_compact_menu_item"/>
+        </menu>
+        <menu action="help_menu">
+          <menuitem action="about_menu_item"/>
+        </menu>
+      </menubar>
+    </ui>
+  </object>
   <object class="GtkWindow" id="main_window">
     <property name="visible">True</property>
     <property name="title" translatable="yes">Music Player</property>
@@ -13,121 +106,9 @@
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
         <child>
-          <object class="GtkMenuBar" id="menubar">
+          <object class="GtkMenuBar" constructor="uimanager1" id="menubar">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-            <child>
-              <object class="GtkMenuItem" id="playlist_menu">
-                <property name="visible">True</property>
-                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="label" translatable="yes">_Playlist</property>
-                <property name="use_underline">True</property>
-                <child>
-                  <object class="GtkMenu" id="menu1">
-                    <property name="visible">True</property>
-                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="new_playlist_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="tooltip-text" translatable="yes">Create a new playlist</property>
-                        <property name="label" translatable="yes">gtk-new</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="open_playlist_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="label" translatable="yes">gtk-open</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="save_playlist_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="label" translatable="yes">gtk-save</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="save_playlist_as_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="label" translatable="yes">gtk-save-as</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="quit_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="label" translatable="yes">gtk-quit</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="view_menu">
-                <property name="visible">True</property>
-                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="label" translatable="yes">_View</property>
-                <property name="use_underline">True</property>
-                <child>
-                  <object class="GtkMenu" id="menu2">
-                    <property name="visible">True</property>
-                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <child>
-                      <object class="GtkMenuItem" id="toggle_compact_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="tooltip-text" translatable="yes">Toggle compact mode</property>
-                        <property name="label" translatable="yes">Compact Mode</property>
-                        <property name="use_underline">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="help_menu">
-                <property name="visible">True</property>
-                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="label" translatable="yes">_Help</property>
-                <property name="use_underline">True</property>
-                <child>
-                  <object class="GtkMenu" id="menu3">
-                    <property name="visible">True</property>
-                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="about_menu_item">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="label" translatable="yes">gtk-about</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -222,7 +203,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-            <property name="adjustment">0 0 1000000 1000 1000 10</property>
+            <property name="adjustment">adjustment1</property>
             <property name="draw_value">False</property>
           </object>
           <packing>
@@ -254,7 +235,6 @@
                 <property name="label" translatable="yes">gtk-find</property>
                 <property name="relief">GTK_RELIEF_NONE</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -292,7 +272,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="statusbar">
+          <object class="GtkStatusbar" id="status_bar">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="spacing">2</property>
@@ -365,7 +345,6 @@
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label" translatable="yes">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </object>
             </child>
             <child>
@@ -376,7 +355,6 @@
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label" translatable="yes">gtk-apply</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </object>
               <packing>
                 <property name="position">1</property>
@@ -390,5 +368,9 @@
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="0">tag_cancel_button</action-widget>
+      <action-widget response="0">tag_apply_button</action-widget>
+    </action-widgets>
   </object>
 </interface>

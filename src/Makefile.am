@@ -4,35 +4,37 @@ AM_CPPFLAGS = \
 	$(HUM_CFLAGS) \
 	-include $(CONFIG_HEADER) \
 	-DPACKAGE_DATADIR='"$(pkgdatadir)"' \
-	-DUI_FILE='"$(pkgdatadir)/ui.xml"' \
+	-DUI_FILE='"$(pkgdatadir)/main.ui"' \
 	$(NULL)
 
 AM_VALAFLAGS = \
-	--vapidir ../vapi \
+	--vapidir $(top_srcdir)/vapi \
 	--pkg config \
 	--pkg gstreamer-0.10 \
 	--pkg dbus-glib-1 \
 	--pkg gtk+-2.0 \
+	--thread \
 	$(NULL)
 
 bin_PROGRAMS = \
-	hum \
-	humgui \
+	hum-player \
+	hum-gtk \
 	$(NULL)
 
-humgui_SOURCES = \
+hum_gtk_SOURCES = \
+	hum_utils.vala \
 	hum_gui.vala \
 	$(NULL)
 
-humgui_LDADD = \
+hum_gtk_LDADD = \
 	$(HUM_LIBS) \
 	$(NULL)
 
-hum_SOURCES = \
-	hum.vala \
+hum_player_SOURCES = \
+	hum_player.vala \
 	$(NULL)
 
-hum_LDADD = \
+hum_player_LDADD = \
 	$(HUM_LIBS) \
 	$(NULL)
 

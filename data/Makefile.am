@@ -1,7 +1,7 @@
 NULL = 
 
 uidir = $(pkgdatadir)
-ui_DATA = ui.xml
+ui_DATA = main.ui
 
 EXTRA_DIST = \
 	$(ui_DATA) \

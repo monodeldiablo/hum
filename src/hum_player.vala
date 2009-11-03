@@ -1,8 +1,9 @@
 /*
- * hum.vala
- * This file is part of Hum, and is thus awesome.
+ * hum_player.vala
  *
- * Copyright (C) 2007-2009 by Brian Davis
+ * This file is part of Hum, the low-calorie music manager.
+ *
+ * Copyright (C) 2007-2009 by Brian Davis <brian.william.davis@gmail.com>
  *
  * Hum is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,12 +50,13 @@ namespace Hum
 		private Gst.Bus bus { get; set; }
 		
 		// The playlist, which is just a linked list of URIs.
-		// FIXME: This should implement some doubly-linked list interface. 
+		// FIXME: This should implement some doubly-linked list interface, or perhaps
+		//        a modern array.
 		public GLib.List<string> playlist;
 
-		//////////////
-		// SETTINGS //
-		//////////////
+		/***********
+		* SETTINGS *
+		***********/
 		
 		// FIXME: These settings should probably be persisted using GConf or
 		//        something, since users are likely to have a preference.
@@ -68,17 +70,18 @@ namespace Hum
 		// Playlist crossfade setting (default: false).
 		public bool crossfade;
 
-		//////////////
-		// PLAYBACK //
-		//////////////
+		/***********
+		* PLAYBACK *
+		***********/
 
 		// The index of the currently-selected track.
 		public int current_track;
 
-		///////////////
-		// OPERATION //
-		///////////////
+		/************
+		* OPERATION *
+		************/
 
+		// The constructor...
 		Player (string[] args)
 		{
 			mainloop = new GLib.MainLoop (null, false);
@@ -94,17 +97,27 @@ namespace Hum
 			// Initialize GStreamer.
 			Gst.init(ref args);
 			
-			message ("GStreamer library initialized.");
+			debug ("GStreamer library initialized.");
 			
-			// Set up the pipeline for playing and the bus for messages.
+			// Set up the pipeline for playing.
 			pipeline = ElementFactory.make ("playbin", "pipeline");
-			bus = pipeline.get_bus ();
-			bus.add_watch (bus_callback);
 			pipeline.set_state (Gst.State.READY);
 			
-			message ("Player instantiated.");
+			// Set up the bus for messages (such as when a song ends or an error
+			// occurs).
+			bus = pipeline.get_bus ();
+			bus.add_watch (parse_message);
+			
+			debug ("Player instantiated.");
 
 			register_dbus_service ();
+		}
+
+		// ... and its darker counterpart, the destructor.
+		~Public ()
+		{
+			// Setting the pipeline to NULL signals GStreamer to clean up before exit.
+			pipeline.set_state (Gst.State.NULL);
 		}
 
 		// Run the application.
@@ -116,17 +129,17 @@ namespace Hum
 		// Tear down the application.
 		public void quit ()
 		{
-			message ("Quitting...");
+			debug ("Quitting...");
 
 			pipeline.set_state (Gst.State.NULL);
 			
-			message ("Goodbye!");
+			debug ("Goodbye!");
 
 			mainloop.quit ();
 		}
 
 		// The master callback that intercepts messages on the pipeline's bus.
-		private bool bus_callback (Gst.Bus bus, Gst.Message message)
+		private bool parse_message (Gst.Bus bus, Gst.Message message)
 		{
 			switch (message.type)
 			{
@@ -165,7 +178,7 @@ namespace Hum
 				{
 					conn.register_object ("/org/washedup/Hum", this);
 					
-					message ("Successfully registered DBus service!");
+					debug ("Successfully registered DBus service!");
 					
 					run ();
 				}
@@ -182,9 +195,9 @@ namespace Hum
 			}
 		}
 
-		///////////
-		// ORDER //
-		///////////
+		/********
+		* ORDER *
+		********/
 
 		// Append a new track to the playlist or, if *position* is specified, insert a new
 		// track at position *position* in the playlist.
@@ -194,14 +207,14 @@ namespace Hum
 			{
 				playlist.append (uri);
 				
-				message ("appended '%s' to the playlist", uri);
+				debug ("appended '%s' to the playlist", uri);
 			}
 			
 			else
 			{
 				playlist.insert (uri, position);
 				
-				message ("inserted '%s' at position %d in the playlist", uri, position);
+				debug ("inserted '%s' at position %d in the playlist", uri, position);
 			}
 			
 			// If we add something ahead of the currently-selected track, its position
@@ -230,7 +243,7 @@ namespace Hum
 				current_track -= 1;
 			}
 			
-			message ("removed the track at position %d from the playlist", position);
+			debug ("removed the track at position %d from the playlist", position);
 		}
 
 		// Move a track from position *from_position* to *to_position* in the playlist.
@@ -242,7 +255,7 @@ namespace Hum
 			remove (from_position);
 			add (uri, to_position);
 			
-			message ("moved the track at position %d to position %d within the playlist", from_position, to_position);
+			debug ("moved the track at position %d to position %d within the playlist", from_position, to_position);
 		}
 
 		// Remove the contents of the playlist.
@@ -251,7 +264,7 @@ namespace Hum
 			stop ();
 			playlist = new GLib.List<string> ();
 			
-			message ("cleared the playlist");
+			debug ("cleared the playlist");
 		}
 
 		// Return the contents of the playlist.
@@ -269,9 +282,9 @@ namespace Hum
 			return list;
 		}
 
-		//////////////
-		// PLAYBACK //
-		//////////////
+		/***********
+		* PLAYBACK *
+		***********/
 
 		// Start playback of the items in the playlist. If playback is paused, resume
 		// playing the selected track. If *position* is specified, begin playback at *position*
@@ -286,7 +299,7 @@ namespace Hum
 				{
 					pipeline.set_state (Gst.State.PLAYING);
 
-					message ("resuming playback of the track at position %d", current_track);
+					debug ("resuming playback of the track at position %d", current_track);
 				}
 				
 				else if (current_state == Gst.State.READY)
@@ -303,7 +316,7 @@ namespace Hum
 				pipeline.set ("uri", playlist.nth_data (current_track));
 				pipeline.set_state (Gst.State.PLAYING);
 			
-				message ("playing the track at position %d", current_track);
+				debug ("playing the track at position %d", current_track);
 			}
 		}
 
@@ -312,7 +325,7 @@ namespace Hum
 		{
 			pipeline.set_state (Gst.State.PAUSED);
 			
-			message ("paused playback");
+			debug ("paused playback");
 		}
 
 		// Halt playback, resetting the playback pointer to the first item in the
@@ -322,7 +335,7 @@ namespace Hum
 			current_track = 0;
 			pipeline.set_state (Gst.State.READY);
 			
-			message ("stopped playback");
+			debug ("stopped playback");
 		}
 
 		// Play the next track in the playlist. If the current track is the last
@@ -343,7 +356,7 @@ namespace Hum
 				play (current_track + 1);
 			}
 
-			message ("skipped to the next track in the playlist at position %d", current_track);
+			debug ("skipped to the next track in the playlist at position %d", current_track);
 		}
 
 		// Play the previous track in the playlist. If the current track is the
@@ -364,7 +377,7 @@ namespace Hum
 				play (current_track - 1);
 			}
 
-			message ("skipped to the previous track in the playlist at position %d", current_track);
+			debug ("skipped to the previous track in the playlist at position %d", current_track);
 		}
 
 		// Seek to *usec* in the currently-playing track. If no track is playing, do
@@ -374,7 +387,7 @@ namespace Hum
 			pipeline.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, usec);
 			
 			float sec = (float) usec / 1000000000;
-			message ("seeked to %f seconds", sec);
+			debug ("seeked to %f seconds", sec);
 		}
 
 		// Return the currently selected track.
@@ -419,9 +432,9 @@ namespace Hum
 			return 0;
 		}
 
-		//////////////
-		// SETTINGS //
-		//////////////
+		/***********
+		* SETTINGS *
+		***********/
 
 		// Toggle playlist looping.
 		public void set_repeat (bool do_repeat)
@@ -430,12 +443,12 @@ namespace Hum
 
 			if (repeat)
 			{
-				message ("playlist repeat toggled on");
+				debug ("playlist repeat toggled on");
 			}
 
 			else
 			{
-				message ("playlist repeat toggled off");
+				debug ("playlist repeat toggled off");
 			}
 		}
 
@@ -471,9 +484,9 @@ namespace Hum
 			return crossfade;
 		}
 
-		///////////////
-		// EXECUTION //
-		///////////////
+		/************
+		* EXECUTION *
+		************/
 		
 		static int main (string[] args)
 		{

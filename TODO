@@ -69,11 +69,11 @@ interface:
 
 	ORDER
 	-----
-	x add(uri, [pos])   - add the track represented by URI to the playlist,
-	                      optionally at *pos* in the list
-	x move(pos1, pos2)  - move the track at *pos1* to *pos2* in the list
-	x remove(pos)       - delete the track at *pos* in the list
-	x clear()           - remove all contents of the playlist
+	x add_track(uri, [pos])  - add the track represented by URI to the playlist,
+	                           optionally at *pos* in the list
+	x move_track(pos1, pos2) - move the track at *pos1* to *pos2* in the list
+	x remove_track(pos)      - delete the track at *pos* in the list
+	x clear_playlist()       - remove all contents of the playlist
 
 
 	PLAYBACK
@@ -85,7 +85,7 @@ interface:
 	x stop()            - halts playback, resetting the list pointer
 	x next()            - move the list pointer to the next track in the list,
 	                      playing the next track if the current track is playing
-	x prev()            - move the list pointer to the previous track in the list,
+	x previous()            - move the list pointer to the previous track in the list,
 	                      playing the previous track if the current track is
 			      playing
 	x seek(usec)        - seek to *usec* in the track
@@ -127,3 +127,38 @@ current state:
 	x get_repeat()      - returns playlist repeat setting
 	x get_shuffle()     - returns playlist shuffle setting
 	x get_fade()        - returns playlist crossfading setting
+
+And, in addition, it should emit signals to announce changes in state,
+including:
+
+	ORDER
+	-----
+	* playlist_changed        - signals that the order or composition of the
+	                            playlist has been altered, and that clients should
+				    call *get_playlist()* to update their view
+	OR
+	* track_added(pos)        - signals that a track has been added to the
+	                            playlist at *pos*
+	* track_moved(pos1, pos2) - signals that the track at *pos1* has been moved to
+	                            *pos2* within the playlist
+	* track_removed(pos)      - signals that the track at *pos* has been removed
+	                            from the playlist
+	* playlist_cleared        - signals that the playlist has been cleared
+
+	PLAYBACK
+	--------
+	* playing_track(pos)      - signals that the track at *pos* has begun playing
+	* paused_playback         - signals that playback has been paused
+	* stopped_playback        - signals that playback has been stopped
+	* seeked(usec)            - signals that the track has been seeked to *usec*
+	* volume_changed(level)   - signals that the volume has been changed to
+	                            *level*
+
+	SETTINGS
+	--------
+	* repeat_toggled(bool)    - signals that the repeat setting has been changed
+	                            to *bool*
+	* shuffle_toggled(bool)   - signals that the shuffle setting has been changed
+	                            to *bool*
+	* fade_toggled(bool)      - signals that the fade setting has been changed to
+	                            *bool*

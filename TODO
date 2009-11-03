@@ -7,31 +7,44 @@ consumption, the following goals must be met:
 
 	* Startup must be shorter than 3 seconds, regardless of the size of a user's
 	  library. Arbitrary? Yes. But that's just how I roll.
+	
 	* The interface must be minimal and responsive at all times. Inattentive apps,
 	  like inattentive people, are themselves frequently ignored. Think about it. 
 	  It's deep.
+	
 	* All metadata displayed to the user must be accurate. No quoted escaped 
 	  quotes. No missing metadata that's not really missing, no songs that are
 	  0:00 in duration. That's amateur. Not cool. Pathetic.
+	
 	* All metadata displayed to the user must be localized and internationalized.
 	  Klapa Subrenum's "Dubrovniče Stari Grade" had better show up correctly or
 	  my wife will kill me. I don't even want to think about what she will do to 
 	  me if "Puste Noći Dok Sam Ček'o Pavu" or "U Đardinu" are screwed up...
+	
 	* Any search results, playlists, browsers or whatever must show only tracks 
 	  accessible to the user. In other words, no songs from unmounted volumes are
 	  allowed. Cuz that's just annoying.
+	
 	* Any search results, playlists, browsers or whatever must show only valid
 	  audio tracks to the user. Color me biased, but I will not tolerate playlists
 	  or 'stopwords.it' (???) showing up in my search results.
+	
 	* Users must be able to construct playlists. Jamie McCracken and other 
 	  brainiacs will have to help me come up with the most extensible and open way
 	  to do this (ideally using tags or something). They will do this because I
 	  command them to.
+	
 	* Users must be able to toggle whether they would like the currently selected
 	  playlist to repeat. I can't be expected to sit by the computer and double
 	  click every time Britney Spears' "Toxic" finishes.
+	
 	* Users must be able to specify the volume for the application. By default,
 	  though, the volume knob should be set to 11.
+
+	* Some users (Marijana) have specified that they much prefer drag-n-drop
+	  playlist modification, meaning that the search results display and the
+	  current playlist would need to be visible simultaneously. This kills my
+	  easy-to-implement toggle button idea for switching between modes. Shit.
 
 DESIGN
 

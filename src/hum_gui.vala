@@ -10,29 +10,29 @@ using Gtk;
 
 namespace Hum {
 	
-	public class UserInterface {
-		string dataDir = "/home/brian/Projects/Public/hum.dev/trunk/data/";
-		string uiFile = dataDir + "hum_ui.xml";
-		public Window window;		
+	public class UserInterface : GLib.Object {
+		string ui_file = Config.UI_FILE;
+		public Gtk.Window window;
 	
-		construct {
-			var uiDefinition = new Builder (uiFile, null);
-			window = (Gtk.Window) uiDefinition.get_object ("main_window");
+		UserInterface () {
+			var ui_definition = new Gtk.Builder ();
+			ui_definition.add_from_file (ui_file);
+			window = (Gtk.Window) ui_definition.get_object ("main_window");
 		}
-	}
 	
-	public void quit () {
-		Gtk.main_quit ();
-	}
-		
-	static int main (string[] args)	{
-		Gtk.init (out args);
-		
-		var sample = new UserInterface ();
-		sample.window.show_all ();
+		public void quit () {
+			Gtk.main_quit ();
+		}
 
-		Gtk.main ();
-		
-		return 0;
+		static int main (string[] args)	{
+			Gtk.init (ref args);
+
+			var sample = new UserInterface ();
+			sample.window.show_all ();
+
+			Gtk.main ();
+
+			return 0;
+		}
 	}
 }

@@ -241,26 +241,6 @@ namespace Hum
 			// Actually perform the move.
 			remove (from_position);
 			add (uri, to_position);
-
-			// Update the track pointer if we move a track while it's playing.
-			if (from_position == current_track)
-			{
-				current_track = to_position;
-			}
-
-			// If we take a track from above the currently-playing track, we need to
-			// decrement the track pointer.
-			else if (from_position < current_track && to_position > current_track)
-			{
-				current_track -= 1;
-			}
-
-			// If we move a track from below the currently-playing track to above or at
-			// its position, we need to increment the track pointer.
-			else if (from_position > current_track && to_position <= current_track)
-			{
-				current_track += 1;
-			}
 			
 			message ("moved the track at position %d to position %d within the playlist", from_position, to_position);
 		}

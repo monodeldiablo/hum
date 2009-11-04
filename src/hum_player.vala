@@ -51,8 +51,8 @@ namespace Hum
 		
 		// The playlist, which is just a linked list of URIs.
 		// FIXME: This should implement some doubly-linked list interface, or perhaps
-		//        a modern array.
-		public GLib.List<string> playlist;
+		//        a modern array (see Gee.ArrayList).
+		private GLib.List<string> playlist;
 
 		/***********
 		* SETTINGS *
@@ -67,15 +67,43 @@ namespace Hum
 		// Playlist shuffle setting (default: false).
 		public bool shuffle;
 
-		// Playlist crossfade setting (default: false).
-		public bool crossfade;
-
 		/***********
 		* PLAYBACK *
 		***********/
 
 		// The index of the currently-selected track.
 		public int current_track;
+
+		/**********
+		* SIGNALS *
+		**********/
+
+		// Indicates that the track *uri* was added to the playlist at *position*.
+		public signal void track_added (string uri, int position);
+
+		// Indicates that the track at *position* was removed from the playlist.
+		public signal void track_removed (int position);
+
+		// Indicates that the playlist has been cleared.
+		public signal void playlist_cleared ();
+
+		// Indicates that the track at *position* has begun playing.
+		public signal void playing_track (int position);
+
+		// Indicates that playback has been paused.
+		public signal void paused_playback ();
+
+		// Indicates that playback has been stopped.
+		public signal void stopped_playback ();
+
+		// Indicates that the current track has been seeked to *usec*.
+		public signal void seeked (int64 usec);
+
+		// Indicates that the repeat setting has been changed to *do_repeat*.
+		public signal void repeat_toggled (bool do_repeat);
+
+		// Indicates that the shuffle setting has been changed to *do_shuffle*.
+		public signal void shuffle_toggled (bool do_shuffle);
 
 		/************
 		* OPERATION *
@@ -87,9 +115,8 @@ namespace Hum
 			mainloop = new GLib.MainLoop (null, false);
 			
 			// FIXME: See the FIXME under SETTINGS, above.
-			repeat = true;
-			shuffle = false;
-			crossfade = false;
+			set_repeat (true);
+			set_shuffle (false);
 
 			// Initialize the playlist pointer to the top of the list.
 			current_track = 0;
@@ -121,7 +148,7 @@ namespace Hum
 		}
 
 		// Run the application.
-		public void run ()
+		private void run ()
 		{
 			mainloop.run ();
 		}
@@ -201,21 +228,16 @@ namespace Hum
 
 		// Append a new track to the playlist or, if *position* is specified, insert a new
 		// track at position *position* in the playlist.
-		public void add (string uri, int position = -1)
+		public void add_track (string uri, int position = -1)
 		{
 			if (position == -1)
 			{
-				playlist.append (uri);
-				
-				debug ("appended '%s' to the playlist", uri);
+				position = (int) playlist.length ();
 			}
 			
-			else
-			{
-				playlist.insert (uri, position);
-				
-				debug ("inserted '%s' at position %d in the playlist", uri, position);
-			}
+			playlist.insert (uri, position);
+
+			debug ("added '%s' to the playlist at position %d", uri, position);
 			
 			// If we add something ahead of the currently-selected track, its position
 			// changes.
@@ -223,11 +245,13 @@ namespace Hum
 			{
 				current_track += 1;
 			}
-			
+
+			// Emit a helpful signal.
+			track_added (uri, position);
 		}
 
 		// Delete the track at position *position* from the playlist.
-		public void remove (int position)
+		public void remove_track (int position)
 		{
 			if (position == current_track && pipeline.current_state == Gst.State.PLAYING)
 			{
@@ -244,27 +268,21 @@ namespace Hum
 			}
 			
 			debug ("removed the track at position %d from the playlist", position);
-		}
 
-		// Move a track from position *from_position* to *to_position* in the playlist.
-		public void move (int from_position, int to_position)
-		{
-			string uri = playlist.nth_data (from_position);
-
-			// Actually perform the move.
-			remove (from_position);
-			add (uri, to_position);
-			
-			debug ("moved the track at position %d to position %d within the playlist", from_position, to_position);
+			// Emit a helpful signal.
+			track_removed (position);
 		}
 
 		// Remove the contents of the playlist.
-		public void clear ()
+		public void clear_playlist ()
 		{
 			stop ();
 			playlist = new GLib.List<string> ();
 			
 			debug ("cleared the playlist");
+
+			// Emit a helpful signal.
+			playlist_cleared ();
 		}
 
 		// Return the contents of the playlist.
@@ -318,6 +336,9 @@ namespace Hum
 			
 				debug ("playing the track at position %d", current_track);
 			}
+
+			// Emit a helpful signal.
+			playing_track (current_track);
 		}
 
 		// Pause playback.
@@ -326,6 +347,9 @@ namespace Hum
 			pipeline.set_state (Gst.State.PAUSED);
 			
 			debug ("paused playback");
+
+			// Emit a helpful signal.
+			paused_playback ();
 		}
 
 		// Halt playback, resetting the playback pointer to the first item in the
@@ -336,6 +360,9 @@ namespace Hum
 			pipeline.set_state (Gst.State.READY);
 			
 			debug ("stopped playback");
+
+			// Emit a helpful signal.
+			stopped_playback ();
 		}
 
 		// Play the next track in the playlist. If the current track is the last
@@ -388,6 +415,9 @@ namespace Hum
 			
 			float sec = (float) usec / 1000000000;
 			debug ("seeked to %f seconds", sec);
+
+			// Emit a helpful signal.
+			seeked (usec);
 		}
 
 		// Return the currently selected track.
@@ -414,9 +444,9 @@ namespace Hum
 		}
 
 		// Return the current playback state.
-		public Gst.State get_state ()
+		public string get_playback_status ()
 		{
-			return pipeline.current_state;
+			return pipeline.current_state.to_string ();
 		}
 
 		// Adjust playback volume.
@@ -439,16 +469,45 @@ namespace Hum
 		// Toggle playlist looping.
 		public void set_repeat (bool do_repeat)
 		{
-			repeat = do_repeat;
-
-			if (repeat)
+			// If it's already set to that value, do nothing.
+			if (repeat != do_repeat)
 			{
-				debug ("playlist repeat toggled on");
+				repeat = do_repeat;
+
+				if (repeat)
+				{
+					debug ("playlist repeat toggled on");
+				}
+
+				else
+				{
+					debug ("playlist repeat toggled off");
+				}
+
+				repeat_toggled (do_repeat);
 			}
+		}
 
-			else
+		// Toggle playlist shuffle.
+		// FIXME: Make this work!
+		public void set_shuffle (bool do_shuffle)
+		{
+			// If it's already set to that value, do nothing.
+			if (shuffle != do_shuffle)
 			{
-				debug ("playlist repeat toggled off");
+				shuffle = do_shuffle;
+
+				if (shuffle)
+				{
+					debug ("playlist shuffle toggled on");
+				}
+
+				else
+				{
+					debug ("playlist shuffle toggled off");
+				}
+
+				shuffle_toggled (do_shuffle);
 			}
 		}
 
@@ -458,30 +517,10 @@ namespace Hum
 			return repeat;
 		}
 
-		// Toggle playlist shuffle.
-		// FIXME: Make this work!
-		public void set_shuffle (bool do_shuffle)
-		{
-			shuffle = do_shuffle;
-		}
-
 		// Return the current shuffle setting.
 		public bool get_shuffle ()
 		{
 			return shuffle;
-		}
-
-		// Toggle playlist crossfading.
-		// FIXME: Make this work!
-		public void set_crossfade (bool do_crossfade)
-		{
-			crossfade = do_crossfade;
-		}
-
-		// Return the current crossfade setting.
-		public bool get_crossfade ()
-		{
-			return crossfade;
 		}
 
 		/************

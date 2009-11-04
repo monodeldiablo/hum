@@ -19,6 +19,14 @@ AC_SUBST(GETTEXT_PACKAGE)
 AM_GLIB_GNU_GETTEXT
 IT_PROG_INTLTOOL([0.35.0])
 
+# Set up prefix-relative directories
+if test "x${prefix}" = "xNONE"; then
+  PREFIX="${ac_default_prefix}"
+else
+  PREFIX="${prefix}"
+fi
+AC_DEFINE_UNQUOTED(PACKAGE_DATADIR, "${PREFIX}/${DATADIRNAME}/${PACKAGE}",[Package data directory])
+
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)

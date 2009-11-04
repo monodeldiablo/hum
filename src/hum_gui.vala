@@ -50,7 +50,7 @@ public class Hum.UserInterface
 	public Gtk.TreeSelection browse_select;
 
 	private string ui_file = "main.ui";
-	//private DBus.Connection conn;
+	private DBus.Connection conn;
 	private enum Columns
 	{
 		URI,
@@ -67,11 +67,21 @@ public class Hum.UserInterface
 	public UserInterface (string [] args)
 	{
 		string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, ui_file);
-		//conn = DBus.Bus.get (DBus.BusType.SESSION);
+		conn = DBus.Bus.get (DBus.BusType.SESSION);
 
 		// Construct the window and its child widgets from the UI definition.
 		Gtk.Builder builder = new Gtk.Builder ();
-		builder.add_from_file (path);
+
+		try
+		{
+			builder.add_from_file (path);
+		}
+
+		catch (GLib.Error e)
+		{
+			stderr.printf ("Shit! %s\n", e.message);
+			quit ();
+		}
 
 		// Assign the widgets to a variable for manipulation later.
 		window = (Gtk.Window) builder.get_object ("main_window");

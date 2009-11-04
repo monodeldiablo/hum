@@ -71,7 +71,6 @@ interface:
 	-----
 	x add_track(uri, [pos])  - add the track represented by URI to the playlist,
 	                           optionally at *pos* in the list
-	x move_track(pos1, pos2) - move the track at *pos1* to *pos2* in the list
 	x remove_track(pos)      - delete the track at *pos* in the list
 	x clear_playlist()       - remove all contents of the playlist
 
@@ -94,9 +93,9 @@ interface:
 
 	SETTINGS
 	--------
-	x set_repeat(bool)  - toggles playlist repeat
-	~ set_shuffle(bool) - toggles playlist shuffle
-	~ set_fade(bool)    - toggles playlist crossfading
+	x set_repeat(bool)    - toggles playlist repeat
+	~ set_shuffle(bool)   - toggles playlist shuffle
+	* set_crossfade(bool) - toggles playlist crossfading
 
 
 	OPERATION
@@ -126,7 +125,7 @@ current state:
 	--------
 	x get_repeat()      - returns playlist repeat setting
 	x get_shuffle()     - returns playlist shuffle setting
-	x get_fade()        - returns playlist crossfading setting
+	* get_crossfade()   - returns playlist crossfading setting
 
 And, in addition, it should emit signals to announce changes in state,
 including:
@@ -136,29 +135,29 @@ including:
 	* playlist_changed        - signals that the order or composition of the
 	                            playlist has been altered, and that clients should
 				    call *get_playlist()* to update their view
-	OR
-	* track_added(pos)        - signals that a track has been added to the
+
+	OR (for a more synchronous model)
+	
+	x track_added(uri, pos)   - signals that the track *uri* has been added to the
 	                            playlist at *pos*
-	* track_moved(pos1, pos2) - signals that the track at *pos1* has been moved to
-	                            *pos2* within the playlist
-	* track_removed(pos)      - signals that the track at *pos* has been removed
+	x track_removed(pos)      - signals that the track at *pos* has been removed
 	                            from the playlist
-	* playlist_cleared        - signals that the playlist has been cleared
+	x playlist_cleared        - signals that the playlist has been cleared
 
 	PLAYBACK
 	--------
-	* playing_track(pos)      - signals that the track at *pos* has begun playing
-	* paused_playback         - signals that playback has been paused
-	* stopped_playback        - signals that playback has been stopped
-	* seeked(usec)            - signals that the track has been seeked to *usec*
+	x playing_track(pos)      - signals that the track at *pos* has begun playing
+	x paused_playback         - signals that playback has been paused
+	x stopped_playback        - signals that playback has been stopped
+	x seeked(usec)            - signals that the track has been seeked to *usec*
 	* volume_changed(level)   - signals that the volume has been changed to
 	                            *level*
 
 	SETTINGS
 	--------
-	* repeat_toggled(bool)    - signals that the repeat setting has been changed
+	x repeat_toggled(bool)    - signals that the repeat setting has been changed
 	                            to *bool*
-	* shuffle_toggled(bool)   - signals that the shuffle setting has been changed
+	x shuffle_toggled(bool)   - signals that the shuffle setting has been changed
 	                            to *bool*
-	* fade_toggled(bool)      - signals that the fade setting has been changed to
-	                            *bool*
+	* crossfade_toggled(bool) - signals that the crossfade setting has been
+	                            changed to *bool*

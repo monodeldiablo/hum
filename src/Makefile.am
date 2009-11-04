@@ -3,8 +3,6 @@ NULL =
 AM_CPPFLAGS = \
 	$(HUM_CFLAGS) \
 	-include $(CONFIG_HEADER) \
-	-DPACKAGE_DATADIR='"$(pkgdatadir)"' \
-	-DUI_FILE='"$(pkgdatadir)/main.ui"' \
 	$(NULL)
 
 AM_VALAFLAGS = \

@@ -27,12 +27,8 @@ using Gst;
 
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
 //        Gst.Decodebin in the future (cross-fading, etc.).
-
-// NOTES REGARDING COLLECTIONS THAT I CAN'T FIND A HOME FOR...
-//
-// Physical URIs will feature the default 'file://' prefix.
-// Search URIs will be prefixed with something like 'search://term[+term...]'.
-// Tag URIs will be prefixed with something like 'tags://term[+term...]'.
+// FIXME: Use the built-in logging facilities!
+// FIXME: Look into daemonizing (libdaemon?).
 
 namespace Hum
 {
@@ -44,14 +40,14 @@ namespace Hum
 		private GLib.MainLoop mainloop;
 
 		// The GStreamer playback pipeline.
-		private Gst.Element pipeline { get; set; }
+		private Gst.Element pipeline;
 
 		// The GStreamer communication bus.
-		private Gst.Bus bus { get; set; }
+		private Gst.Bus bus;
 		
 		// The playlist, which is just a linked list of URIs.
-		// FIXME: This should implement some doubly-linked list interface, or perhaps
-		//        a modern array (see Gee.ArrayList).
+		// FIXME: This should implement something fast and light, perhaps a modern
+		//        array (see GLib.Array and Gee.ArrayList).
 		private GLib.List<string> playlist;
 
 		/***********
@@ -177,7 +173,17 @@ namespace Hum
 					stderr.printf ("Error: %s\n", err.message);
 					break;
 				case MessageType.EOS:
-					next();
+					if (current_track < playlist.length () - 1 || get_repeat ())
+					{
+						next ();
+					}
+
+					// We're at the end of the playlist, and repeat is
+					// disabled.
+					else
+					{
+						stop ();
+					}
 					break;
 				case MessageType.STATE_CHANGED:
 				case MessageType.TAG:
@@ -318,6 +324,9 @@ namespace Hum
 					pipeline.set_state (Gst.State.PLAYING);
 
 					debug ("resuming playback of the track at position %d", current_track);
+
+					// Emit a helpful signal.
+					playing_track (current_track);
 				}
 				
 				else if (current_state == Gst.State.READY)
@@ -335,21 +344,24 @@ namespace Hum
 				pipeline.set_state (Gst.State.PLAYING);
 			
 				debug ("playing the track at position %d", current_track);
-			}
 
-			// Emit a helpful signal.
-			playing_track (current_track);
+				// Emit a helpful signal.
+				playing_track (current_track);
+			}
 		}
 
 		// Pause playback.
 		public void pause ()
 		{
-			pipeline.set_state (Gst.State.PAUSED);
-			
-			debug ("paused playback");
+			if (pipeline.current_state == Gst.State.PLAYING)
+			{
+				pipeline.set_state (Gst.State.PAUSED);
 
-			// Emit a helpful signal.
-			paused_playback ();
+				debug ("paused playback");
+
+				// Emit a helpful signal.
+				paused_playback ();
+			}
 		}
 
 		// Halt playback, resetting the playback pointer to the first item in the
@@ -370,20 +382,23 @@ namespace Hum
 		// playlist.
 		public void next ()
 		{
-			if (current_track == playlist.length () - 1)
+			if (playlist.length () > 0)
 			{
-				if (repeat)
+				if (current_track == playlist.length () - 1)
 				{
-					play (0);
+					if (repeat)
+					{
+						play (0);
+					}
 				}
-			}
 
-			else
-			{
-				play (current_track + 1);
-			}
+				else
+				{
+					play (current_track + 1);
+				}
 
-			debug ("skipped to the next track in the playlist at position %d", current_track);
+				debug ("skipped to the next track in the playlist at position %d", current_track);
+			}
 		}
 
 		// Play the previous track in the playlist. If the current track is the
@@ -391,20 +406,22 @@ namespace Hum
 		// the playlist.
 		public void previous ()
 		{
-			if (current_track == 0)
+			if (playlist.length () > 0)
 			{
-				if (repeat)
+				if (current_track == 0)
 				{
-					play ((int) playlist.length () - 1);
+					if (repeat)
+					{
+						play ((int) playlist.length () - 1);
+					}
 				}
-			}
 
-			else
-			{
-				play (current_track - 1);
-			}
+				else
+				{
+					play (current_track - 1);
+				}
 
-			debug ("skipped to the previous track in the playlist at position %d", current_track);
+				debug ("skipped to the previous track in the playlist at position %d", current_track);
 		}
 
 		// Seek to *usec* in the currently-playing track. If no track is playing, do
@@ -474,17 +491,10 @@ namespace Hum
 			{
 				repeat = do_repeat;
 
-				if (repeat)
-				{
-					debug ("playlist repeat toggled on");
-				}
-
-				else
-				{
-					debug ("playlist repeat toggled off");
-				}
-
+				// Emit a helpful signal.
 				repeat_toggled (do_repeat);
+
+				debug ("playlist repeat toggled '%s'", repeat.to_string ());
 			}
 		}
 
@@ -497,17 +507,10 @@ namespace Hum
 			{
 				shuffle = do_shuffle;
 
-				if (shuffle)
-				{
-					debug ("playlist shuffle toggled on");
-				}
-
-				else
-				{
-					debug ("playlist shuffle toggled off");
-				}
-
+				// Emit a helpful signal.
 				shuffle_toggled (do_shuffle);
+
+				debug ("playlist shuffle toggled '%s'", shuffle.to_string ());
 			}
 		}
 

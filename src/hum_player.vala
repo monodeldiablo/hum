@@ -234,6 +234,7 @@ namespace Hum
 
 		// Append a new track to the playlist or, if *position* is specified, insert a new
 		// track at position *position* in the playlist.
+		// FIXME: We should first check if the URI is even valid before proceeding.
 		public void add_track (string uri, int position = -1)
 		{
 			if (position == -1)

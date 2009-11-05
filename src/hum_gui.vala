@@ -65,12 +65,13 @@ namespace Hum
 		public Gtk.TreeView track_list;
 		public Gtk.ListStore list_store;
 		public Gtk.TreeSelection browse_select;
+		private Gtk.TreeIter current_iter;
 
 		private string ui_file = "main.ui";
 		
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
-		private Hum.Store store;
+		private Hum.QueryEngine query_engine;
 	
 		public UserInterface (string [] args)
 		{
@@ -82,7 +83,7 @@ namespace Hum
 				"/org/washedup/Hum",
 				"org.washedup.Hum");
 			
-			this.store = new Hum.Store ();
+			this.query_engine = new Hum.QueryEngine ();
 
 			// Construct the window and its child widgets from the UI definition.
 			Gtk.Builder builder = new Gtk.Builder ();
@@ -219,9 +220,6 @@ namespace Hum
 		}
 
 		// Connect a bunch of signals to their handlers.
-		/*
-		 * FIXME: Add signals on events like next, prev, pause, stop, etc.
-		 */
 		private void set_up_signals ()
 		{
 			// If the window is closed, what's the point?
@@ -290,31 +288,57 @@ namespace Hum
 
 		private void set_up_playing_state (int position)
 		{
-			Hum.Track track = this.store.make_track (this.player.GetCurrentUri ());
+			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
+			
+			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s".printf(track.artist, track.title);
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
+
+			// Swap the play and pause buttons.
 			show_pause_button ();
+
+			// Set the 'playing' icon in the row of the track that's playing.
+			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
+			this.list_store.get_iter (out this.current_iter, path);
+			this.list_store.set (this.current_iter,
+				Columns.STATUS, "gtk-media-play", -1);
 		}
 
 		private void set_up_paused_state (int position)
 		{
-			Hum.Track track = this.store.make_track (this.player.GetCurrentUri ());
+			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
+			
+			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s (paused)".printf(track.artist, track.title);
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
+			
+			// Swap the pause and play buttons.
 			show_play_button ();
+
+			// Set the 'paused' icon in the row of the track that's paused.
+			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
+			this.list_store.get_iter (out this.current_iter, path);
+			this.list_store.set (this.current_iter,
+				Columns.STATUS, "gtk-media-pause", -1);
 		}
 
 		private void set_up_stopped_state ()
 		{
+			// Clear the necessary text bits.
 			this.window.title = "Music Player";
 			this.track_label.set_markup("<b>Not Playing</b>");
+
+			// Swap the pause and play buttons.
 			show_play_button ();
+
+			// Clear the 'playing'/'paused' icon from any row.
+			this.list_store.set (this.current_iter, Columns.STATUS, "", -1);
 		}
 
 		private void add_track_to_view (string uri, int position)
 		{
 			Gtk.TreeIter iter;
-			Hum.Track track = this.store.make_track (uri);
+			Hum.Track track = this.query_engine.make_track (uri);
 
 			this.list_store.insert (out iter, position);
 			this.list_store.set (iter,

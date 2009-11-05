@@ -1,0 +1,163 @@
+Goals for 1.0
+
+USABILITY
+
+Before I (or anybody, for that matter) will be happy releasing Hum for public
+consumption, the following goals must be met:
+
+	* Startup must be shorter than 3 seconds, regardless of the size of a user's
+	  library. Arbitrary? Yes. But that's just how I roll.
+	
+	* The interface must be minimal and responsive at all times. Inattentive apps,
+	  like inattentive people, are themselves frequently ignored. Think about it. 
+	  It's deep.
+	
+	* All metadata displayed to the user must be accurate. No quoted escaped 
+	  quotes. No missing metadata that's not really missing, no songs that are
+	  0:00 in duration. That's amateur. Not cool. Pathetic.
+	
+	* All metadata displayed to the user must be localized and internationalized.
+	  Klapa Subrenum's "Dubrovniče Stari Grade" had better show up correctly or
+	  my wife will kill me. I don't even want to think about what she will do to 
+	  me if "Puste Noći Dok Sam Ček'o Pavu" or "U Đardinu" are screwed up...
+	
+	* Any search results, playlists, browsers or whatever must show only tracks 
+	  accessible to the user. In other words, no songs from unmounted volumes are
+	  allowed. Cuz that's just annoying.
+	
+	* Any search results, playlists, browsers or whatever must show only valid
+	  audio tracks to the user. Color me biased, but I will not tolerate playlists
+	  or 'stopwords.it' (???) showing up in my search results.
+	
+	* Users must be able to construct playlists. Jamie McCracken and other 
+	  brainiacs will have to help me come up with the most extensible and open way
+	  to do this (ideally using tags or something). They will do this because I
+	  command them to.
+	
+	* Users must be able to toggle whether they would like the currently selected
+	  playlist to repeat. I can't be expected to sit by the computer and double
+	  click every time Britney Spears' "Toxic" finishes.
+	
+	* Users must be able to specify the volume for the application. By default,
+	  though, the volume knob should be set to 11.
+
+	* Some users (Marijana) have specified that they much prefer drag-n-drop
+	  playlist modification, meaning that the search results display and the
+	  current playlist would need to be visible simultaneously. This kills my
+	  easy-to-implement toggle button idea for switching between modes. Shit.
+
+DESIGN
+
+In order to meet these goals, and to make Hum fun and easy to hack on later,
+some design considerations should be met:
+
+	* The front end and back end should be fully decoupled, with the back end
+	  being a DBus service that has a few simple, playback-specific capabilities.
+
+	* The player, not the tracks, should manage playback. This is a change from
+	  the current design. The input to the player will always be a playlist (even
+	  if that playlist contains only a single track), and the player will execute
+	  actions against this playlist.
+
+	* The front end should carry the Tracker search interface, freeing up the
+	  back end to be simpler and more focused (i.e. the back end need only know
+	  about the URIs to play, and their order, not the bulk of the metadata
+	  returned by a given search).
+
+To this end, the player will export the following verbs over a public DBus
+interface:
+
+	ORDER
+	-----
+	x add_track(uri, [pos])  - add the track represented by URI to the playlist,
+	                           optionally at *pos* in the list
+	x remove_track(pos)      - delete the track at *pos* in the list
+	x clear_playlist()       - remove all contents of the playlist
+
+
+	PLAYBACK
+	--------
+	x play([pos])       - start playback of the items in the playlist, in order,
+	                      optionally starting at *pos* in the list (if playback is
+			      paused and *pos* is not specified, resume playback)
+	x pause()           - pauses playback
+	x stop()            - halts playback, resetting the list pointer
+	x next()            - move the list pointer to the next track in the list,
+	                      playing the next track if the current track is playing
+	x previous()            - move the list pointer to the previous track in the list,
+	                      playing the previous track if the current track is
+			      playing
+	x seek(usec)        - seek to *usec* in the track
+	* set_volume(value) - adjusts playback volume
+
+
+	SETTINGS
+	--------
+	x set_repeat(bool)    - toggles playlist repeat
+	~ set_shuffle(bool)   - toggles playlist shuffle
+	* set_crossfade(bool) - toggles playlist crossfading
+
+
+	OPERATION
+	---------
+	x quit()            - shut down the back end (usually on front end shutdown)
+
+The back end will also have an introspection interface that will export the
+following verbs to provide a means for front ends to accurately reflect the
+current state:
+
+	ORDER
+	-----
+	x get_playlist()    - returns the URIs, in order, in the current playlist
+	
+
+	PLAYBACK
+	--------
+	x get_status()      - returns one of "playing", "paused", or "ready",
+	                      corresponding to GStreamer element states
+	x get_track()       - returns the position of the list pointer
+	x get_progress()    - returns the position of playback in a given track (if
+	                      relevant)
+	* get_volume()      - returns playback volume setting
+
+
+	SETTINGS
+	--------
+	x get_repeat()      - returns playlist repeat setting
+	x get_shuffle()     - returns playlist shuffle setting
+	* get_crossfade()   - returns playlist crossfading setting
+
+And, in addition, it should emit signals to announce changes in state,
+including:
+
+	ORDER
+	-----
+	* playlist_changed        - signals that the order or composition of the
+	                            playlist has been altered, and that clients should
+				    call *get_playlist()* to update their view
+
+	OR (for a more synchronous model)
+	
+	x track_added(uri, pos)   - signals that the track *uri* has been added to the
+	                            playlist at *pos*
+	x track_removed(pos)      - signals that the track at *pos* has been removed
+	                            from the playlist
+	x playlist_cleared        - signals that the playlist has been cleared
+
+	PLAYBACK
+	--------
+	x playing_track(pos)      - signals that the track at *pos* has begun playing
+	x paused_playback         - signals that playback has been paused
+	x stopped_playback        - signals that playback has been stopped
+	x seeked(usec)            - signals that the track has been seeked to *usec*
+	* volume_changed(level)   - signals that the volume has been changed to
+	                            *level*
+
+	SETTINGS
+	--------
+	x repeat_toggled(bool)    - signals that the repeat setting has been changed
+	                            to *bool*
+	x shuffle_toggled(bool)   - signals that the shuffle setting has been changed
+	                            to *bool*
+	* crossfade_toggled(bool) - signals that the crossfade setting has been
+	                            changed to *bool*

@@ -1,5 +1,5 @@
 /*
- * hum_store.vala
+ * hum_query_engine.vala
  * 
  * This file is part of Hum, the low calorie music manager.
  * 
@@ -25,7 +25,7 @@ using DBus;
 
 namespace Hum
 {
-	public class Store: GLib.Object
+	public class QueryEngine: GLib.Object
 	{
 		private DBus.Connection conn;
 		private dynamic DBus.Object tracker;
@@ -70,16 +70,13 @@ namespace Hum
 				"org.freedesktop.Tracker.Metadata");
 		}
 	
-		public Hum.Collection search (string terms)
+		public string[] search (string terms)
 		{
 			string[] matches = {};
-			Hum.Collection results;
 	
 			// The user didn't enter any search terms, so we'll just grab everything.
 			if (0 == terms.size ())
 			{
-				results = new Hum.Collection ("all");
-	
 				debug ("Searching for all tracks...");
 	
 				try
@@ -98,8 +95,6 @@ namespace Hum
 			// The user entered search terms.
 			else
 			{
-				results = new Hum.Collection (terms);
-	
 				debug ("Searching for \"%s\"...", terms);
 	
 				try
@@ -118,40 +113,33 @@ namespace Hum
 	
 			debug ("Found %d matches.", matches.length);
 			
-			// Construct the collection.
-			foreach (string path in matches)
-			{
-				try
-				{
-					//string uri = GLib.Filename.to_uri (path);
-	
-					results.append (make_track (path));
-				}
-				catch (GLib.Error e)
-				{
-					critical ("Error while converting \"%s\" to a uri: %s", path, e.message);
-				}
-			}
-	
-			return results;
+			return matches;
 		}
 
-		// This seems out of place if others want to use it...
+		// FIXME: This seems out of place if others want to use it...
 		public Hum.Track make_track (string uri)
 		{
-			string path = GLib.Filename.from_uri (uri);
 			Hum.Track track = new Track (uri);
-			string[] metadata = this.tracker_metadata.Get (this.service_type,
-				path,
-				this.fields);
 
-			track.title = metadata[0];
-			track.track_number = metadata[1].to_int ();
-			track.genre = metadata[2];
-			track.artist = metadata[3];
-			track.album = metadata[4];
-			track.duration = metadata[5].to_int64 ();
-			track.release_date = metadata[8];
+			try
+			{
+				string path = GLib.Filename.from_uri (uri);
+				string[] metadata = this.tracker_metadata.Get (this.service_type,
+					path,
+					this.fields);
+
+				track.title = metadata[0];
+				track.track_number = metadata[1].to_int ();
+				track.genre = metadata[2];
+				track.artist = metadata[3];
+				track.album = metadata[4];
+				track.duration = metadata[5].to_int64 ();
+				track.release_date = metadata[8];
+			}
+			catch (GLib.Error e)
+			{
+				critical ("Error while converting \"%s\" to a path: %s", uri, e.message);
+			}
 
 			return track;
 		}

@@ -37,9 +37,19 @@ namespace Hum
 		// The track length is in nanoseconds.
 		public int64 duration { get; set; }
 		
+		// FIXME: Perhaps we should run the file through something else to extract
+		//        the duration, etc.? taglib bindings come with Vala by default, but
+		//        introduce another dependency. GStreamer might be another worthy
+		//        choice.
 		public Track (string uri)
 		{
 			this.uri = uri;
+			this.title = GLib.Filename.display_basename (uri);
+			this.track_number = 0;
+			this.genre = "";
+			this.artist = "";
+			this.album = "";
+			this.duration = 0;
 		}
 	}
 }

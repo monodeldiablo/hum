@@ -70,7 +70,6 @@ namespace Hum
 		
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
-		private Hum.Collection playlist;
 		private Hum.Store store;
 	
 		public UserInterface (string [] args)
@@ -84,7 +83,6 @@ namespace Hum
 				"org.washedup.Hum");
 			
 			this.store = new Hum.Store ();
-			this.playlist = new Hum.Collection ("test");
 
 			// Construct the window and its child widgets from the UI definition.
 			Gtk.Builder builder = new Gtk.Builder ();
@@ -241,6 +239,7 @@ namespace Hum
 			this.player.StoppedPlayback += handle_stopped_playback;
 			this.player.RepeatToggled += handle_repeat_toggled;
 			this.player.ShuffleToggled += handle_shuffle_toggled;
+			this.player.TrackAdded += handle_track_added;
 		}
 
 		// Bring the interface up to date with the back end.
@@ -251,10 +250,12 @@ namespace Hum
 			int position = this.player.GetCurrentTrack ();
 			bool repeat_toggled = this.player.GetRepeat ();
 			bool shuffle_toggled = this.player.GetShuffle ();
+			int i = 0;
 
 			foreach (string uri in uris)
 			{
-				this.playlist.append (this.store.make_track (uri));
+				add_track_to_view (uri, i);
+				i++;
 			}
 
 			switch (playback_status)
@@ -289,7 +290,7 @@ namespace Hum
 
 		private void set_up_playing_state (int position)
 		{
-			Hum.Track track = this.playlist.index (position);
+			Hum.Track track = this.store.make_track (this.player.GetCurrentUri ());
 			this.window.title = "%s - %s".printf(track.artist, track.title);
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
 			show_pause_button ();
@@ -297,7 +298,7 @@ namespace Hum
 
 		private void set_up_paused_state (int position)
 		{
-			Hum.Track track = this.playlist.index (position);
+			Hum.Track track = this.store.make_track (this.player.GetCurrentUri ());
 			this.window.title = "%s - %s (paused)".printf(track.artist, track.title);
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
 			show_play_button ();
@@ -308,6 +309,23 @@ namespace Hum
 			this.window.title = "Music Player";
 			this.track_label.set_markup("<b>Not Playing</b>");
 			show_play_button ();
+		}
+
+		private void add_track_to_view (string uri, int position)
+		{
+			Gtk.TreeIter iter;
+			Hum.Track track = this.store.make_track (uri);
+
+			this.list_store.insert (out iter, position);
+			this.list_store.set (iter,
+				Columns.URI, track.uri,
+				Columns.TITLE, track.title,
+				Columns.ARTIST, track.artist,
+				Columns.ALBUM, track.album,
+				Columns.TRACK, track.track_number.to_string (),
+				Columns.GENRE, track.genre,
+				Columns.DURATION, track.duration.to_string (),
+				-1);
 		}
 
 		// Pass along the command to play the current track or resume play.
@@ -369,6 +387,11 @@ namespace Hum
 		public void handle_shuffle_toggled (dynamic DBus.Object player, bool do_shuffle)
 		{
 			this.shuffle_button.active = do_shuffle;
+		}
+
+		public void handle_track_added (dynamic DBus.Object player, string uri, int position)
+		{
+			add_track_to_view (uri, position);
 		}
 
 		public void quit ()

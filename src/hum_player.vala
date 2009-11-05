@@ -28,7 +28,7 @@ using Gst;
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
 //        Gst.Decodebin in the future (cross-fading, etc.).
 // FIXME: Use the built-in logging facilities!
-// FIXME: Look into daemonizing (libdaemon?).
+// FIXME: Look into daemonizing (libdaemon?) this.
 
 namespace Hum
 {
@@ -108,14 +108,14 @@ namespace Hum
 		// The constructor...
 		Player (string[] args)
 		{
-			mainloop = new GLib.MainLoop (null, false);
+			this.mainloop = new GLib.MainLoop (null, false);
 			
 			// FIXME: See the FIXME under SETTINGS, above.
 			set_repeat (true);
 			set_shuffle (false);
 
 			// Initialize the playlist pointer to the top of the list.
-			current_track = 0;
+			this.current_track = 0;
 
 			// Initialize GStreamer.
 			Gst.init(ref args);
@@ -123,13 +123,13 @@ namespace Hum
 			debug ("GStreamer library initialized.");
 			
 			// Set up the pipeline for playing.
-			pipeline = ElementFactory.make ("playbin", "pipeline");
-			pipeline.set_state (Gst.State.READY);
+			this.pipeline = ElementFactory.make ("playbin", "pipeline");
+			this.pipeline.set_state (Gst.State.READY);
 			
 			// Set up the bus for messages (such as when a song ends or an error
 			// occurs).
-			bus = pipeline.get_bus ();
-			bus.add_watch (parse_message);
+			this.bus = this.pipeline.get_bus ();
+			this.bus.add_watch (parse_message);
 			
 			debug ("Player instantiated.");
 
@@ -140,13 +140,13 @@ namespace Hum
 		~Public ()
 		{
 			// Setting the pipeline to NULL signals GStreamer to clean up before exit.
-			pipeline.set_state (Gst.State.NULL);
+			this.pipeline.set_state (Gst.State.NULL);
 		}
 
 		// Run the application.
 		private void run ()
 		{
-			mainloop.run ();
+			this.mainloop.run ();
 		}
 
 		// Tear down the application.
@@ -154,11 +154,11 @@ namespace Hum
 		{
 			debug ("Quitting...");
 
-			pipeline.set_state (Gst.State.NULL);
+			this.pipeline.set_state (Gst.State.NULL);
 			
 			debug ("Goodbye!");
 
-			mainloop.quit ();
+			this.mainloop.quit ();
 		}
 
 		// The master callback that intercepts messages on the pipeline's bus.
@@ -173,7 +173,7 @@ namespace Hum
 					stderr.printf ("Error: %s\n", err.message);
 					break;
 				case MessageType.EOS:
-					if (current_track < playlist.length () - 1 || get_repeat ())
+					if (this.current_track < this.playlist.length () - 1 || get_repeat ())
 					{
 						next ();
 					}
@@ -201,11 +201,11 @@ namespace Hum
 			{
 				var conn = DBus.Bus.get (DBus.BusType.SESSION);
 
-				dynamic DBus.Object bus = conn.get_object ("org.freedesktop.DBus",
-				                                           "/org/freedesktop/DBus",
-									   "org.freedesktop.DBus");
+				dynamic DBus.Object dbus = conn.get_object ("org.freedesktop.DBus",
+					"/org/freedesktop/DBus",
+					"org.freedesktop.DBus");
 
-				uint request_name_result = bus.request_name ("org.washedup.Hum", (uint) 0);
+				uint request_name_result = dbus.request_name ("org.washedup.Hum", (uint) 0);
 
 				if (request_name_result == DBus.RequestNameReply.PRIMARY_OWNER)
 				{
@@ -238,18 +238,18 @@ namespace Hum
 		{
 			if (position == -1)
 			{
-				position = (int) playlist.length ();
+				position = (int) this.playlist.length ();
 			}
 			
-			playlist.insert (uri, position);
+			this.playlist.insert (uri, position);
 
 			debug ("added '%s' to the playlist at position %d", uri, position);
 			
 			// If we add something ahead of the currently-selected track, its position
 			// changes.
-			if (position <= current_track)
+			if (position <= this.current_track)
 			{
-				current_track += 1;
+				this.current_track += 1;
 			}
 
 			// Emit a helpful signal.
@@ -259,18 +259,18 @@ namespace Hum
 		// Delete the track at position *position* from the playlist.
 		public void remove_track (int position)
 		{
-			if (position == current_track && pipeline.current_state == Gst.State.PLAYING)
+			if (position == this.current_track && this.pipeline.current_state == Gst.State.PLAYING)
 			{
 				stop ();
 			}
 
-			playlist.remove (playlist.nth_data (position));
+			this.playlist.remove (this.playlist.nth_data (position));
 
 			// If we remove something ahead of the currently-selected track, its
 			// position changes.
-			if (position < current_track)
+			if (position < this.current_track)
 			{
-				current_track -= 1;
+				this.current_track -= 1;
 			}
 			
 			debug ("removed the track at position %d from the playlist", position);
@@ -283,7 +283,7 @@ namespace Hum
 		public void clear_playlist ()
 		{
 			stop ();
-			playlist = new GLib.List<string> ();
+			this.playlist = new GLib.List<string> ();
 			
 			debug ("cleared the playlist");
 
@@ -296,11 +296,11 @@ namespace Hum
 		//        faster, smaller, less unweildy, and fits this model better.
 		public string[] get_playlist ()
 		{
-			string[] list = new string[playlist.length ()];
+			string[] list = new string[this.playlist.length ()];
 
-			for (int i = 0; i < playlist.length (); i++)
+			for (int i = 0; i < this.playlist.length (); i++)
 			{
-				list[i] = playlist.nth_data (i);
+				list[i] = this.playlist.nth_data (i);
 			}
 
 			return list;
@@ -315,47 +315,56 @@ namespace Hum
 		// position in the playist. Otherwise, start at the beginning.
 		public void play (int position = -1)
 		{
-			if (position == -1)
+			// If there's nothing in the playlist, there's nothing to play!
+			if (this.playlist.length () > 0)
 			{
-				var current_state = pipeline.current_state;
-
-				if (current_state == Gst.State.PAUSED)
+				if (position < 0)
 				{
-					pipeline.set_state (Gst.State.PLAYING);
+					var current_state = this.pipeline.current_state;
 
-					debug ("resuming playback of the track at position %d", current_track);
+					if (current_state == Gst.State.PAUSED)
+					{
+						this.pipeline.set_state (Gst.State.PLAYING);
 
-					// Emit a helpful signal.
-					playing_track (current_track);
+						debug ("resuming playback of the track at position %d", this.current_track);
+
+						// Emit a helpful signal.
+						playing_track (this.current_track);
+					}
+
+					else if (current_state == Gst.State.READY)
+					{
+						play (0);
+					}
 				}
-				
-				else if (current_state == Gst.State.READY)
+
+				else
 				{
-					play (0);
+					// If the user asks for a track that is outside the bounds of the list,
+					// ignore the command, even if looping is enabled.
+					if (position < this.playlist.length ())
+					{
+						// NOTE: This results in a reassignment (this.current_track = 0, then position), which is slightly wasteful.
+						stop ();
+						this.current_track = position;
+						this.pipeline.set ("uri", this.playlist.nth_data (this.current_track));
+						this.pipeline.set_state (Gst.State.PLAYING);
+	
+						debug ("playing the track at position %d", this.current_track);
+	
+						// Emit a helpful signal.
+						playing_track (this.current_track);
+					}
 				}
-			}
-			
-			else
-			{
-				// NOTE: This results in a reassignment (current_track = 0, then position).
-				stop ();
-				current_track = position;
-				pipeline.set ("uri", playlist.nth_data (current_track));
-				pipeline.set_state (Gst.State.PLAYING);
-			
-				debug ("playing the track at position %d", current_track);
-
-				// Emit a helpful signal.
-				playing_track (current_track);
 			}
 		}
 
 		// Pause playback.
 		public void pause ()
 		{
-			if (pipeline.current_state == Gst.State.PLAYING)
+			if (this.pipeline.current_state == Gst.State.PLAYING)
 			{
-				pipeline.set_state (Gst.State.PAUSED);
+				this.pipeline.set_state (Gst.State.PAUSED);
 
 				debug ("paused playback");
 
@@ -368,8 +377,8 @@ namespace Hum
 		// playlist.
 		public void stop ()
 		{
-			current_track = 0;
-			pipeline.set_state (Gst.State.READY);
+			this.current_track = 0;
+			this.pipeline.set_state (Gst.State.READY);
 			
 			debug ("stopped playback");
 
@@ -382,23 +391,23 @@ namespace Hum
 		// playlist.
 		public void next ()
 		{
-			if (playlist.length () > 0)
+			if (this.playlist.length () > 0)
 			{
-				if (current_track == playlist.length () - 1)
+				if (this.current_track >= this.playlist.length () - 1)
 				{
 					if (repeat)
 					{
 						play (0);
 					}
 				}
-
+	
 				else
 				{
-					play (current_track + 1);
+					play (this.current_track + 1);
 				}
-
-				debug ("skipped to the next track in the playlist at position %d", current_track);
-			}
+	
+				debug ("skipped to the next track in the playlist at position %d", this.current_track);
+				}
 		}
 
 		// Play the previous track in the playlist. If the current track is the
@@ -406,29 +415,31 @@ namespace Hum
 		// the playlist.
 		public void previous ()
 		{
-			if (playlist.length () > 0)
+			if (this.playlist.length () > 0)
 			{
-				if (current_track == 0)
+				if (this.current_track <= 0)
 				{
 					if (repeat)
 					{
-						play ((int) playlist.length () - 1);
+						play ((int) this.playlist.length () - 1);
 					}
 				}
-
+	
 				else
 				{
-					play (current_track - 1);
+					play (this.current_track - 1);
 				}
-
-				debug ("skipped to the previous track in the playlist at position %d", current_track);
+	
+				debug ("skipped to the previous track in the playlist at position %d", this.current_track);
+			}
 		}
+
 
 		// Seek to *usec* in the currently-playing track. If no track is playing, do
 		// nothing.
 		public void seek (int64 usec)
 		{
-			pipeline.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, usec);
+			this.pipeline.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, usec);
 			
 			float sec = (float) usec / 1000000000;
 			debug ("seeked to %f seconds", sec);
@@ -440,7 +451,13 @@ namespace Hum
 		// Return the currently selected track.
 		public int get_current_track ()
 		{
-			return current_track;
+			return this.current_track;
+		}
+
+		// Return the currently selected track's uri.
+		public string get_current_uri ()
+		{
+			return this.playlist.nth_data (this.current_track);
 		}
 
 		// Return the current track progress in usec.
@@ -449,7 +466,7 @@ namespace Hum
 			int64 position;
 			Gst.Format format = Gst.Format.TIME;
 
-			if (pipeline.query_position (ref format, out position))
+			if (this.pipeline.query_position (ref format, out position))
 			{
 				return position;
 			}
@@ -463,7 +480,7 @@ namespace Hum
 		// Return the current playback state.
 		public string get_playback_status ()
 		{
-			return pipeline.current_state.to_string ();
+			return this.pipeline.current_state.to_string ();
 		}
 
 		// Adjust playback volume.

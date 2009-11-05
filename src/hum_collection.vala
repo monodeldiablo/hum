@@ -66,6 +66,11 @@ namespace Hum
 		{
 			list.append (track);
 		}
+
+		public void insert (Hum.Track track, int position)
+		{
+			list.insert (track, position);
+		}
 	
 		public void remove (int position)
 		{

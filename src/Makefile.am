@@ -22,7 +22,6 @@ bin_PROGRAMS = \
 hum_gtk_SOURCES = \
 	hum_utils.vala \
 	hum_track.vala \
-	hum_collection.vala \
 	hum_store.vala \
 	hum_gui.vala \
 	$(NULL)

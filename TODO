@@ -15,7 +15,7 @@
   * if Hum isn't running, it should be brought up
   * if Tracker isn't running, should we bring it up?
   * if DBus is down, die
-* daemonize hum-player so that it doesn't get reaped if hum-gtk crashes
+  * daemonize hum-player so that it doesn't get reaped if hum-gtk crashes
 * clean up/simplify/condense the signal code
 * more thoroughly comment hum_gui.vala
 * create "about" dialog

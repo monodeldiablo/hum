@@ -127,13 +127,14 @@ namespace Hum
 				string[] metadata = this.tracker_metadata.Get (this.service_type,
 					path,
 					this.fields);
+				int64 useconds_in_second = 1000000000;
 
 				track.title = metadata[0];
 				track.track_number = metadata[1].to_int ();
 				track.genre = metadata[2];
 				track.artist = metadata[3];
 				track.album = metadata[4];
-				track.duration = metadata[5].to_int64 ();
+				track.duration = metadata[5].to_int64 () * useconds_in_second;
 				track.release_date = metadata[8];
 			}
 			catch (GLib.Error e)

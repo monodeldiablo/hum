@@ -93,6 +93,8 @@ namespace Hum
 		public signal void stopped_playback ();
 
 		// Indicates that the current track has been seeked to *usec*.
+		// FIXME: This might be unnecessary if clients are querying using
+		//        get_progress ().
 		public signal void seeked (int64 usec);
 
 		// Indicates that the repeat setting has been changed to *do_repeat*.

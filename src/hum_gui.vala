@@ -29,6 +29,8 @@
  *        accompanying files. 
  */
 
+// FIXME: Use TreeView.get_visible_range () to minimize the number of items in the search box.
+
 using GLib;
 using Gtk;
 using Config;
@@ -62,12 +64,21 @@ namespace Hum
 		public Gtk.Label track_label;
 		public Gtk.Label duration_label;
 		public Gtk.HScale progress_slider;
+		public Gtk.Entry search_entry;
+		public Gtk.Button search_button;
+		public Gtk.VPaned view_separator;
+		public Gtk.TreeView search_list;
 		public Gtk.TreeView track_list;
-		public Gtk.ListStore list_store;
+		public Gtk.ListStore search_store;
+		public Gtk.ListStore playlist_store;
 		public Gtk.TreeSelection browse_select;
+
 		private Gtk.TreeIter current_iter;
+		private double current_progress = 0.0;
 
 		private string ui_file = "main.ui";
+		private int update_timeout_id = -1;
+		private int update_period = 500;
 		
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
@@ -112,10 +123,13 @@ namespace Hum
 			this.track_label = (Gtk.Label) builder.get_object ("track_label");
 			this.duration_label = (Gtk.Label) builder.get_object ("duration_label");
 			this.progress_slider = (Gtk.HScale) builder.get_object ("progress_slider");
+			this.search_entry = (Gtk.Entry) builder.get_object ("search_entry");
+			this.search_button = (Gtk.Button) builder.get_object ("search_button");
+			this.view_separator = (Gtk.VPaned) builder.get_object ("view_separator");
 			this.track_list = (Gtk.TreeView) builder.get_object ("track_list");
 	
 			// Create the store that will drive the track list.
-			this.list_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
+			this.playlist_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
 				typeof (string), // uri
 				typeof (string), // status
 				typeof (string), // title
@@ -143,17 +157,18 @@ namespace Hum
 		private void set_up_track_list ()
 		{
 			// Define sort functions and hook them up.
-			this.list_store.set_sort_func (Columns.TITLE, (Gtk.TreeIterCompareFunc) title_sort);
-			this.list_store.set_sort_func (Columns.ARTIST, (Gtk.TreeIterCompareFunc) artist_sort);
-			this.list_store.set_sort_func (Columns.ALBUM, (Gtk.TreeIterCompareFunc) album_sort);
-			this.list_store.set_sort_func (Columns.TRACK, (Gtk.TreeIterCompareFunc) track_sort);
-			this.list_store.set_sort_func (Columns.GENRE, (Gtk.TreeIterCompareFunc) genre_sort);
-			this.list_store.set_sort_func (Columns.DURATION, (Gtk.TreeIterCompareFunc) duration_sort);
+			this.playlist_store.set_sort_func (Columns.TITLE, (Gtk.TreeIterCompareFunc) title_sort);
+			this.playlist_store.set_sort_func (Columns.ARTIST, (Gtk.TreeIterCompareFunc) artist_sort);
+			this.playlist_store.set_sort_func (Columns.ALBUM, (Gtk.TreeIterCompareFunc) album_sort);
+			this.playlist_store.set_sort_func (Columns.TRACK, (Gtk.TreeIterCompareFunc) track_sort);
+			this.playlist_store.set_sort_func (Columns.GENRE, (Gtk.TreeIterCompareFunc) genre_sort);
+			this.playlist_store.set_sort_func (Columns.DURATION, (Gtk.TreeIterCompareFunc) duration_sort);
 	
-			this.list_store.set_sort_column_id (Columns.ARTIST, Gtk.SortType.ASCENDING);
+			// FIXME: Search panes should be sorted, but not the playlist.
+			//this.search_store.set_sort_column_id (Columns.ARTIST, Gtk.SortType.ASCENDING);
 	
 			// Attach the store to the track list.
-			this.track_list.set_model (this.list_store);
+			this.track_list.set_model (this.playlist_store);
 	
 			// Set up the display columns.
 			Gtk.TreeViewColumn uri;
@@ -232,6 +247,14 @@ namespace Hum
 			this.repeat_button.clicked += handle_repeat_clicked;
 			this.shuffle_button.clicked += handle_shuffle_clicked;
 
+			this.progress_slider.value_changed += handle_slider_moved;
+			
+			// FIXME: Double-clicking on a row in the search pane appends the track to
+			//        the playlist.
+			//this.search_list.row_activated += handle_play_clicked;
+			this.track_list.row_activated += handle_track_list_selected;
+
+			// Signals from hum-player.
 			this.player.PlayingTrack += handle_playing_track;
 			this.player.PausedPlayback += handle_paused_playback;
 			this.player.StoppedPlayback += handle_stopped_playback;
@@ -250,11 +273,17 @@ namespace Hum
 			bool shuffle_toggled = this.player.GetShuffle ();
 			int i = 0;
 
+			// Hide the search view at start up.
+			this.view_separator.set_position (0);
+
 			foreach (string uri in uris)
 			{
 				add_track_to_view (uri, i);
 				i++;
 			}
+
+			// Clear the player's state.
+			set_up_stopped_state ();
 
 			switch (playback_status)
 			{
@@ -266,7 +295,6 @@ namespace Hum
 					break;
 				case "READY":
 				default:
-					set_up_stopped_state ();
 					break;
 			}
 
@@ -294,32 +322,60 @@ namespace Hum
 			this.window.title = "%s - %s".printf(track.artist, track.title);
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
 
+			// Set the 'playing' icon in the row of the track that's playing.
+			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
+			this.playlist_store.get_iter (out this.current_iter, path);
+			this.playlist_store.set (this.current_iter,
+				Columns.STATUS, "gtk-media-play", -1);
+
+			// Add a timeout to update the track progress.
+			// FIXME: We should also remove this timeout when the track stops, to keep
+			//        the app from stupidly pinging Hum for updates every half a second.
+			this.progress_slider.set_range (0.0, (double) track.duration);
+			this.update_timeout_id = (int) GLib.Timeout.add (this.update_period, update_track_progress);
+
 			// Swap the play and pause buttons.
 			show_pause_button ();
 
-			// Set the 'playing' icon in the row of the track that's playing.
-			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
-			this.list_store.get_iter (out this.current_iter, path);
-			this.list_store.set (this.current_iter,
-				Columns.STATUS, "gtk-media-play", -1);
+			// Reactivate the previous and next buttons.
+			if (position > 0 || this.repeat_button.active)
+			{
+				this.prev_button.sensitive = true;
+			}
+			if (position < this.playlist_store.length - 1 || this.repeat_button.active)
+			{
+				this.next_button.sensitive = true;
+			}
 		}
 
 		private void set_up_paused_state (int position)
 		{
 			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
 			
+			// Set the 'paused' icon in the row of the track that's paused.
+			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
+			this.playlist_store.get_iter (out this.current_iter, path);
+			this.playlist_store.set (this.current_iter,
+				Columns.STATUS, "gtk-media-pause", -1);
+
 			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s (paused)".printf(track.artist, track.title);
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
+			this.progress_slider.set_range (0.0, (float) track.duration);
+			update_track_progress ();
 			
 			// Swap the pause and play buttons.
 			show_play_button ();
 
-			// Set the 'paused' icon in the row of the track that's paused.
-			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
-			this.list_store.get_iter (out this.current_iter, path);
-			this.list_store.set (this.current_iter,
-				Columns.STATUS, "gtk-media-pause", -1);
+			// Reactivate the previous and next buttons.
+			if (position > 0 || this.repeat_button.active)
+			{
+				this.prev_button.sensitive = true;
+			}
+			if (position < this.playlist_store.length - 1 || this.repeat_button.active)
+			{
+				this.next_button.sensitive = true;
+			}
 		}
 
 		private void set_up_stopped_state ()
@@ -331,8 +387,27 @@ namespace Hum
 			// Swap the pause and play buttons.
 			show_play_button ();
 
-			// Clear the 'playing'/'paused' icon from any row.
-			this.list_store.set (this.current_iter, Columns.STATUS, "", -1);
+			// Deactivate the previous and next buttons.
+			this.prev_button.sensitive = false;
+			this.next_button.sensitive = false;
+
+			// Remove the timeout and reset the slider.
+			if (this.update_timeout_id != -1)
+			{
+				GLib.Source.remove ((uint) this.update_timeout_id);
+				this.update_timeout_id = -1;
+			}
+			this.progress_slider.set_value (0.0);
+			this.progress_slider.set_range (0.0, 1.0);
+
+			// Clear the 'playing'/'paused' icon from any row, if one was present.
+			if (this.playlist_store.iter_is_valid (this.current_iter))
+			{
+				this.playlist_store.set (this.current_iter,	Columns.STATUS, "", -1);
+
+				// Reset the current_iter pointer.
+				this.playlist_store.get_iter_first (out this.current_iter);
+			}
 		}
 
 		private void add_track_to_view (string uri, int position)
@@ -340,16 +415,38 @@ namespace Hum
 			Gtk.TreeIter iter;
 			Hum.Track track = this.query_engine.make_track (uri);
 
-			this.list_store.insert (out iter, position);
-			this.list_store.set (iter,
+			this.playlist_store.insert (out iter, position);
+			this.playlist_store.set (iter,
 				Columns.URI, track.uri,
 				Columns.TITLE, track.title,
 				Columns.ARTIST, track.artist,
 				Columns.ALBUM, track.album,
 				Columns.TRACK, track.track_number.to_string (),
 				Columns.GENRE, track.genre,
-				Columns.DURATION, track.duration.to_string (),
+				Columns.DURATION, usec_to_string (track.duration),
 				-1);
+		}
+
+		private bool update_track_progress ()
+		{
+			int64 progress = this.player.GetProgress ();
+			GLib.Value duration;
+
+			this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
+			this.duration_label.set_text ("%s of %s".printf (usec_to_string (progress), (string) duration));
+			
+			// FIXME: If we want to hook into the "value_changed" signal later to
+			//        control seeking, this could be an issue...
+			this.current_progress = (double) progress;
+			this.progress_slider.set_value ((double) progress);
+
+			return true;
+		}
+
+		public void handle_track_list_selected (Gtk.TreePath path, Gtk.TreeViewColumn column)
+		{
+			int track = path.to_string ().to_int ();
+			this.player.Play (track);
 		}
 
 		// Pass along the command to play the current track or resume play.
@@ -357,7 +454,26 @@ namespace Hum
 		//        just blindly passing along -1.
 		public void handle_play_clicked ()
 		{
-			this.player.Play (-1);
+			Gtk.TreeIter selection;
+			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
+			bool is_selected = this.browse_select.get_selected (out model, out selection);
+			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
+			string status = this.player.GetPlaybackStatus ();
+			int track;
+			
+			// If playback is currently paused, just resume.
+			if (status == "PAUSED" && selection_is_valid && is_selected)
+			{
+				Gtk.TreePath path = this.playlist_store.get_path (selection);
+				track = path.to_string ().to_int ();
+			}
+
+			else
+			{
+				track = -1;
+			}
+
+			this.player.Play (track);
 		}
 
 		// Pass along the command to pause playback.
@@ -381,11 +497,46 @@ namespace Hum
 		public void handle_repeat_clicked ()
 		{
 			this.player.SetRepeat (this.repeat_button.active);
+			
+			// Change the sensitivity of the previous and next buttons at the extremes
+			// of the playlist to reflect the (dis)ability to loop.
+			if (this.playlist_store.iter_is_valid (this.current_iter))
+			{
+				Gtk.TreePath path = this.playlist_store.get_path (this.current_iter);
+
+				if (path.to_string ().to_int () == 0)
+				{
+					this.prev_button.sensitive = this.repeat_button.active;
+				}
+
+				else if (path.to_string ().to_int () == this.playlist_store.length - 1)
+				{
+					this.next_button.sensitive = this.repeat_button.active;
+				}
+			}
 		}
 
 		public void handle_shuffle_clicked ()
 		{
 			this.player.SetShuffle (this.shuffle_button.active);
+		}
+
+		public void handle_slider_moved ()
+		{
+			double position = this.progress_slider.get_value ();
+
+			// If the slider has moved more than it normally does between updates from
+			// the back end, then the user probably moved it. If they actually moved it
+			// less than this distance, well... they can just wait the extra 500ms.
+			if (position > this.current_progress + this.update_period ||
+				position < this.current_progress)
+			{
+				this.player.Seek ((int64) position);
+			}
+			else
+			{
+				this.current_progress = position;
+			}
 		}
 
 		public void handle_playing_track (dynamic DBus.Object player, int position)

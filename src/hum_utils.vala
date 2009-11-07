@@ -23,6 +23,7 @@
 
 namespace Hum
 {
+	// Compare two UTF-8 strings.
 	public int compare (string a, string b)
 	{
 		string key_a;
@@ -36,6 +37,18 @@ namespace Hum
 		key_b = b.casefold ();
 
 		return GLib.strcmp (key_a, key_b);
+	}
+
+	// Convert from useconds to a string representation of MM:SS.
+	public string usec_to_string (int64 usec)
+	{
+		int64 useconds_in_second = 1000000000;
+		int seconds_in_minute = 60;
+		int total_seconds = (int) (usec /  useconds_in_second);
+		int minutes = total_seconds / seconds_in_minute;
+		int seconds = total_seconds % seconds_in_minute;
+
+		return "%d:%02d".printf (minutes, seconds);
 	}
 
 	// Sort by title.

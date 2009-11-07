@@ -1,13 +1,8 @@
 * check that URIs are valid before adding them to the playlist
-* display duration correctly (in status strip & in views)
 * implement shuffle
-* enable play of highlighted track when play button is pressed
-* hook up track progress (tricky! may just fake the hard bits to keep DBus from getting crowded)
-* hook up seek
-* enable double-click play
+* fix seek while paused
 * figure out what to do about the search box & button (if there is one)
 * enable search & display in search view
-* enable playlist view (unsorted columns, frozen column headers)
 * enable add-to-playlist from search view
 * extract the search/playlist view code into separate files (maybe)
 * add better error handling

@@ -521,6 +521,7 @@ namespace Hum
 			this.player.SetShuffle (this.shuffle_button.active);
 		}
 
+		// FIXME: Seeking while paused does not work for some reason...
 		public void handle_slider_moved ()
 		{
 			double position = this.progress_slider.get_value ();

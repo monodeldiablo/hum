@@ -93,7 +93,6 @@ namespace Hum
 			this.conn = DBus.Bus.get (DBus.BusType.SESSION);
 
 			// Fetch the player backend.
-			// FIXME: If no backend exists, one should be launched.
 			this.player = conn.get_object ("org.washedup.Hum",
 				"/org/washedup/Hum",
 				"org.washedup.Hum");
@@ -641,6 +640,9 @@ namespace Hum
 		// FIXME: Instead of having this expand to a specified height, it should
 		//        expand to the number of results, stopping at some sane maximum.
 		//        Investigate the use of Gtk.TreeView.get_cell_area () to do this.
+		// FIXME: Investigate live search.
+		// FIXME: Clear the existing search data before conducting a new one (this
+		//        includes retracting the results pane).
 		public void handle_search_requested ()
 		{
 			string terms = this.search_entry.text;

@@ -1,16 +1,14 @@
 * check that URIs are valid before adding them to the playlist
 * implement shuffle
 * fix seek while paused
-* figure out what to do about the search box & button (if there is one)
-* enable search & display in search view
-* enable add-to-playlist from search view
+* clean up the search results pane expand/shrink behavior
+  * only expand the window for as many results as there are, up to 5
+  * provide a red flash or some other feedback in the background of the search entry if no results
+  * add asynchronous search
+  * provide search progress feedback in the background of the search entry
+  * implement live search
+  * paginate results to tighten memory footprint
 * extract the search/playlist view code into separate files (maybe)
-* add better error handling
-  * failure to connect to Hum/Tracker/DBus should result in error dialog
-  * if Hum isn't running, it should be brought up
-  * if Tracker isn't running, should we bring it up?
-  * if DBus is down, die
-  * daemonize hum-player so that it doesn't get reaped if hum-gtk crashes
 * clean up/simplify/condense the signal code
 * more thoroughly comment hum_gui.vala
 * create "about" dialog
@@ -24,4 +22,4 @@
 * log information to a standard location (in ~/.local/share/hum/hum-{gtk,player}.log)
 * clean up HumQueryEngine and apply some sanity to its methods and design
 * investigate taglib
-* investigate "collate_key()"
+* investigate "collate_key()" in the sorting code

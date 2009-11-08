@@ -26,6 +26,7 @@ else
   PREFIX="${prefix}"
 fi
 AC_DEFINE_UNQUOTED(PACKAGE_DATADIR, "${PREFIX}/${DATADIRNAME}/${PACKAGE}",[Package data directory])
+AC_DEFINE_UNQUOTED(PACKAGE_BINDIR, "${PREFIX}/bin",[Package executable directory])
 
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)

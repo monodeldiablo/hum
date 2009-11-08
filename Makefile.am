@@ -8,6 +8,15 @@ SUBDIRS = \
 	po \
 	$(NULL)
 
+humservicedir = ${datadir}/dbus-1/services
+humservice_DATA = \
+	org.washedup.Hum.service \
+	$(NULL)
+
+org.washedup.Hum.service:
+	cp org.washedup.Hum.service.in org.washedup.Hum.service && \
+	echo "Exec=${bindir}/hum-player" >> org.washedup.Hum.service
+
 humdocdir = ${docdir}
 humdoc_DATA = \
 	ChangeLog \
@@ -26,6 +35,7 @@ EXTRA_DIST = \
 	$(NULL)
 
 DISTCLEANFILES = \
+	org.washedup.Hum.service \
 	intltool-extract \
 	intltool-merge \
 	intltool-update \

@@ -41,7 +41,7 @@ namespace Hum
 	public enum Columns
 	{
 		URI,
-		STATUS,
+		STATUS_OR_ADD_TO_PLAYLIST,
 		TITLE,
 		ARTIST,
 		ALBUM,
@@ -67,8 +67,8 @@ namespace Hum
 		public Gtk.Entry search_entry;
 		public Gtk.Button search_button;
 		public Gtk.VPaned view_separator;
-		public Gtk.TreeView search_list;
-		public Gtk.TreeView track_list;
+		public Gtk.TreeView search_view;
+		public Gtk.TreeView playlist_view;
 		public Gtk.ListStore search_store;
 		public Gtk.ListStore playlist_store;
 		public Gtk.TreeSelection browse_select;
@@ -79,6 +79,10 @@ namespace Hum
 		private string ui_file = "main.ui";
 		private int update_timeout_id = -1;
 		private int update_period = 500;
+		private int animate_timeout_id = -1;
+		private int animate_period = 100;
+		private int animate_increment = 20;
+		private int search_results_height = 100;
 		
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
@@ -126,8 +130,9 @@ namespace Hum
 			this.search_entry = (Gtk.Entry) builder.get_object ("search_entry");
 			this.search_button = (Gtk.Button) builder.get_object ("search_button");
 			this.view_separator = (Gtk.VPaned) builder.get_object ("view_separator");
-			this.track_list = (Gtk.TreeView) builder.get_object ("track_list");
-	
+			this.playlist_view = (Gtk.TreeView) builder.get_object ("playlist_view");
+			this.search_view = (Gtk.TreeView) builder.get_object ("search_view");
+
 			// Create the store that will drive the track list.
 			this.playlist_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
 				typeof (string), // uri
@@ -139,11 +144,23 @@ namespace Hum
 				typeof (string), // genre
 				typeof (string));// duration
 	
-			// Set up the track list, store, and columns.
-			set_up_track_list ();
+			// Create the store that will drive the search list.
+			this.search_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
+				typeof (string), // uri
+				typeof (string), // add_to_playlist
+				typeof (string), // title
+				typeof (string), // artist
+				typeof (string), // album
+				typeof (string), // track
+				typeof (string), // genre
+				typeof (string));// duration
+
+			// Connect the stores to their corresponding views.
+			set_up_list_view (this.playlist_store, this.playlist_view);
+			set_up_list_view (this.search_store, this.search_view);
 	
 			// Set the selection mode.
-			this.browse_select = this.track_list.get_selection ();
+			this.browse_select = this.playlist_view.get_selection ();
 			this.browse_select.set_mode (Gtk.SelectionMode.SINGLE);
 	
 			// Hook up some signals.
@@ -154,35 +171,38 @@ namespace Hum
 		}
 	
 		// Set up the track list.
-		private void set_up_track_list ()
+		private void set_up_list_view (Gtk.ListStore store, Gtk.TreeView view)
 		{
 			// Define sort functions and hook them up.
-			this.playlist_store.set_sort_func (Columns.TITLE, (Gtk.TreeIterCompareFunc) title_sort);
-			this.playlist_store.set_sort_func (Columns.ARTIST, (Gtk.TreeIterCompareFunc) artist_sort);
-			this.playlist_store.set_sort_func (Columns.ALBUM, (Gtk.TreeIterCompareFunc) album_sort);
-			this.playlist_store.set_sort_func (Columns.TRACK, (Gtk.TreeIterCompareFunc) track_sort);
-			this.playlist_store.set_sort_func (Columns.GENRE, (Gtk.TreeIterCompareFunc) genre_sort);
-			this.playlist_store.set_sort_func (Columns.DURATION, (Gtk.TreeIterCompareFunc) duration_sort);
+			store.set_sort_func (Columns.TITLE, (Gtk.TreeIterCompareFunc) title_sort);
+			store.set_sort_func (Columns.ARTIST, (Gtk.TreeIterCompareFunc) artist_sort);
+			store.set_sort_func (Columns.ALBUM, (Gtk.TreeIterCompareFunc) album_sort);
+			store.set_sort_func (Columns.TRACK, (Gtk.TreeIterCompareFunc) track_sort);
+			store.set_sort_func (Columns.GENRE, (Gtk.TreeIterCompareFunc) genre_sort);
+			store.set_sort_func (Columns.DURATION, (Gtk.TreeIterCompareFunc) duration_sort);
 	
-			// FIXME: Search panes should be sorted, but not the playlist.
-			//this.search_store.set_sort_column_id (Columns.ARTIST, Gtk.SortType.ASCENDING);
+			// Search panes should be sorted by default, but not the playlist.
+			if (store == this.search_store)
+			{
+				store.set_sort_column_id (Columns.ARTIST, Gtk.SortType.ASCENDING);
+			}
 	
 			// Attach the store to the track list.
-			this.track_list.set_model (this.playlist_store);
+			view.set_model (store);
 	
 			// Set up the display columns.
 			Gtk.TreeViewColumn uri;
-			Gtk.TreeViewColumn status;
+			Gtk.TreeViewColumn status_or_add_to_playlist;
 			Gtk.TreeViewColumn title;
 			Gtk.TreeViewColumn artist;
 			Gtk.TreeViewColumn album;
 			Gtk.TreeViewColumn track;
 			Gtk.TreeViewColumn genre;
 			Gtk.TreeViewColumn duration;
-			Gtk.Image status_header;
+			Gtk.Image status_or_add_to_playlist_header;
 	
 			uri = new Gtk.TreeViewColumn.with_attributes ("URI", new Gtk.CellRendererText (), "text", Columns.URI);
-			status = new Gtk.TreeViewColumn.with_attributes ("", new Gtk.CellRendererPixbuf (), "stock-id", Columns.STATUS);
+			status_or_add_to_playlist = new Gtk.TreeViewColumn.with_attributes ("", new Gtk.CellRendererPixbuf (), "stock-id", Columns.STATUS_OR_ADD_TO_PLAYLIST);
 			title = new Gtk.TreeViewColumn.with_attributes ("Title", new Gtk.CellRendererText (), "text", Columns.TITLE);
 			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", new Gtk.CellRendererText (), "text", Columns.ARTIST);
 			album = new Gtk.TreeViewColumn.with_attributes ("Album", new Gtk.CellRendererText (), "text", Columns.ALBUM);
@@ -194,7 +214,7 @@ namespace Hum
 			uri.set_visible (false);
 	
 			// Set up the sizing parameters for each column.
-			status.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
+			status_or_add_to_playlist.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			title.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			artist.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			album.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
@@ -202,13 +222,23 @@ namespace Hum
 			genre.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			duration.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 	
-			// Set up the image in the header of the status column.
-			status_header = new Gtk.Image.from_stock (Gtk.STOCK_MEDIA_PLAY, Gtk.IconSize.MENU);
-			status.set_widget (status_header);
-			status_header.show ();
+			// Set up the image in the header of the status_or_add_to_playlist column.
+			if (view == this.playlist_view)
+			{
+				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.STOCK_MEDIA_PLAY, Gtk.IconSize.MENU);
+				view.set_headers_clickable (false);
+			}
+			else
+			{
+				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.STOCK_ADD, Gtk.IconSize.MENU);
+				view.set_headers_clickable (true);
+			}
+			
+			status_or_add_to_playlist.set_widget (status_or_add_to_playlist_header);
+			status_or_add_to_playlist_header.show ();
 	
 			// Define the column properties.
-			status.set_fixed_width (22); // GConf? (to remember between sessions)
+			status_or_add_to_playlist.set_fixed_width (22); // GConf? (to remember between sessions)
 			title.set_expand (true);
 			artist.set_expand (true);
 			album.set_expand (true);
@@ -224,14 +254,14 @@ namespace Hum
 			duration.set_resizable (true);
 	
 			// Glue it all together!
-			this.track_list.append_column (uri);
-			this.track_list.append_column (status);
-			this.track_list.append_column (title);
-			this.track_list.append_column (artist);
-			this.track_list.append_column (album);
-			this.track_list.append_column (track);
-			this.track_list.append_column (genre);
-			this.track_list.append_column (duration);
+			view.append_column (uri);
+			view.append_column (status_or_add_to_playlist);
+			view.append_column (title);
+			view.append_column (artist);
+			view.append_column (album);
+			view.append_column (track);
+			view.append_column (genre);
+			view.append_column (duration);
 		}
 
 		// Connect a bunch of signals to their handlers.
@@ -248,11 +278,12 @@ namespace Hum
 			this.shuffle_button.clicked += handle_shuffle_clicked;
 
 			this.progress_slider.value_changed += handle_slider_moved;
+			this.search_button.clicked += handle_search_requested;
+			this.search_entry.activate += handle_search_requested;
+			this.search_entry.icon_release += handle_search_cleared;
 			
-			// FIXME: Double-clicking on a row in the search pane appends the track to
-			//        the playlist.
-			//this.search_list.row_activated += handle_play_clicked;
-			this.track_list.row_activated += handle_track_list_selected;
+			this.search_view.row_activated += handle_search_view_selected;
+			this.playlist_view.row_activated += handle_playlist_view_selected;
 
 			// Signals from hum-player.
 			this.player.PlayingTrack += handle_playing_track;
@@ -271,15 +302,13 @@ namespace Hum
 			int position = this.player.GetCurrentTrack ();
 			bool repeat_toggled = this.player.GetRepeat ();
 			bool shuffle_toggled = this.player.GetShuffle ();
-			int i = 0;
 
 			// Hide the search view at start up.
 			this.view_separator.set_position (0);
 
 			foreach (string uri in uris)
 			{
-				add_track_to_view (uri, i);
-				i++;
+				add_track_to_view (this.playlist_store, uri);
 			}
 
 			// Clear the player's state.
@@ -326,7 +355,7 @@ namespace Hum
 			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
 			this.playlist_store.get_iter (out this.current_iter, path);
 			this.playlist_store.set (this.current_iter,
-				Columns.STATUS, "gtk-media-play", -1);
+				Columns.STATUS_OR_ADD_TO_PLAYLIST, "gtk-media-play", -1);
 
 			// Add a timeout to update the track progress.
 			// FIXME: We should also remove this timeout when the track stops, to keep
@@ -356,7 +385,7 @@ namespace Hum
 			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
 			this.playlist_store.get_iter (out this.current_iter, path);
 			this.playlist_store.set (this.current_iter,
-				Columns.STATUS, "gtk-media-pause", -1);
+				Columns.STATUS_OR_ADD_TO_PLAYLIST, "gtk-media-pause", -1);
 
 			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s (paused)".printf(track.artist, track.title);
@@ -403,20 +432,29 @@ namespace Hum
 			// Clear the 'playing'/'paused' icon from any row, if one was present.
 			if (this.playlist_store.iter_is_valid (this.current_iter))
 			{
-				this.playlist_store.set (this.current_iter,	Columns.STATUS, "", -1);
+				this.playlist_store.set (this.current_iter, Columns.STATUS_OR_ADD_TO_PLAYLIST, "", -1);
 
 				// Reset the current_iter pointer.
 				this.playlist_store.get_iter_first (out this.current_iter);
 			}
 		}
 
-		private void add_track_to_view (string uri, int position)
+		private void add_track_to_view (Gtk.ListStore store, string uri, int position = -1)
 		{
 			Gtk.TreeIter iter;
 			Hum.Track track = this.query_engine.make_track (uri);
 
-			this.playlist_store.insert (out iter, position);
-			this.playlist_store.set (iter,
+			if (position == -1)
+			{
+				store.append (out iter);
+			}
+
+			else
+			{
+				store.insert (out iter, position);
+			}
+
+			store.set (iter,
 				Columns.URI, track.uri,
 				Columns.TITLE, track.title,
 				Columns.ARTIST, track.artist,
@@ -427,6 +465,9 @@ namespace Hum
 				-1);
 		}
 
+		// FIXME: Instead of always returning true, see if it would be
+		//        cheaper/cleaner/wiser to return false if the playback status is
+		//        PAUSED or the track is at its end, etc...
 		private bool update_track_progress ()
 		{
 			int64 progress = this.player.GetProgress ();
@@ -443,7 +484,64 @@ namespace Hum
 			return true;
 		}
 
-		public void handle_track_list_selected (Gtk.TreePath path, Gtk.TreeViewColumn column)
+		private bool expand_search_pane ()
+		{
+			int position = this.view_separator.get_position ();
+
+			if (position < search_results_height)
+			{
+				this.view_separator.set_position (position + animate_increment);
+				return true;
+			}
+
+			else
+			{
+				return false;
+			}
+		}
+
+		private bool shrink_search_pane ()
+		{
+			int position = this.view_separator.get_position ();
+
+			if (position > 0)
+			{
+				int new_position = position - animate_increment;
+				
+				if (new_position > 0)
+				{
+					this.view_separator.set_position (new_position);
+				}
+				
+				else
+				{
+					this.view_separator.set_position (0);
+				}
+
+				return true;
+			}
+
+			else
+			{
+				return false;
+			}
+		}
+
+		public void handle_search_view_selected (Gtk.TreePath path, Gtk.TreeViewColumn column)
+		{
+			Gtk.TreeIter iter;
+			GLib.Value uri;
+
+			this.search_store.get_iter (out iter, path);
+
+			if (this.search_store.iter_is_valid (iter))
+			{
+				this.search_store.get_value (iter, Columns.URI, out uri);
+				this.player.AddTrack ((string) uri, -1);
+			}
+		}
+
+		public void handle_playlist_view_selected (Gtk.TreePath path, Gtk.TreeViewColumn column)
 		{
 			int track = path.to_string ().to_int ();
 			this.player.Play (track);
@@ -540,6 +638,31 @@ namespace Hum
 			}
 		}
 
+		// FIXME: Instead of having this expand to a specified height, it should
+		//        expand to the number of results, stopping at some sane maximum.
+		//        Investigate the use of Gtk.TreeView.get_cell_area () to do this.
+		public void handle_search_requested ()
+		{
+			string terms = this.search_entry.text;
+			string[] uris = this.query_engine.search (terms);
+
+			foreach (string uri in uris)
+			{
+				add_track_to_view (this.search_store, uri);
+			}
+
+			this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, expand_search_pane);
+		}
+
+		// FIXME: Clear the search terms, clear the store and view, and animate the
+		//        pane retracting.
+		public void handle_search_cleared ()
+		{
+			this.search_entry.text = "";
+			this.search_store.clear ();
+			this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, shrink_search_pane);
+		}
+
 		public void handle_playing_track (dynamic DBus.Object player, int position)
 		{
 			set_up_playing_state (position);
@@ -567,7 +690,7 @@ namespace Hum
 
 		public void handle_track_added (dynamic DBus.Object player, string uri, int position)
 		{
-			add_track_to_view (uri, position);
+			add_track_to_view (this.playlist_store, uri, position);
 		}
 
 		public void quit ()

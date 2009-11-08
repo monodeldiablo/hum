@@ -69,7 +69,13 @@ namespace Hum
 				"/org/freedesktop/Tracker/Metadata",
 				"org.freedesktop.Tracker.Metadata");
 		}
-	
+
+		// This method returns the list of URIs of files that match the given search.
+		// FIXME: Perhaps make this asynchronous, so that the application doesn't
+		//        freeze up for long-running queries.
+		// FIXME: Remove the 512 item limit and introduce a paging system, whereby
+		//        the application may page through a result set, fetching only the
+		//        number necessary to fill the search window.
 		public string[] search (string terms)
 		{
 			string[] matches = {};
@@ -112,6 +118,19 @@ namespace Hum
 			}
 	
 			debug ("Found %d matches.", matches.length);
+
+			for (int i = 0; i < matches.length; ++i)
+			{
+				try
+				{
+					matches[i] = GLib.Filename.to_uri (matches[i]);
+				}
+
+				catch (GLib.Error e)
+				{
+					critical ("Error attempting to construct a URI for %s", matches[i]);
+				}
+			}
 			
 			return matches;
 		}

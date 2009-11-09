@@ -17,6 +17,11 @@ org.washedup.Hum.service:
 	cp org.washedup.Hum.service.in org.washedup.Hum.service && \
 	echo "Exec=${bindir}/hum-player" >> org.washedup.Hum.service
 
+humappdir = ${datadir}/applications
+humapp_DATA = \
+	hum.desktop \
+	$(NULL)
+
 humdocdir = ${docdir}
 humdoc_DATA = \
 	ChangeLog \
@@ -28,6 +33,7 @@ humdoc_DATA = \
 	$(NULL)
 
 EXTRA_DIST = \
+	org.washedup.Hum.service.in \
 	$(humdoc_DATA) \
 	intltool-extract.in \
 	intltool-merge.in \

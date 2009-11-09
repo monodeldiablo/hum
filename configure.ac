@@ -1,4 +1,4 @@
-AC_INIT([Hum: The Low-Calorie Music Manager], [0.1.0], [brian.william.davis@gmail.com], [hum], [http://launchpad.net/hum])
+AC_INIT([Hum: The Low-Calorie Music Manager], [0.2.0], [brian.william.davis@gmail.com], [hum], [http://launchpad.net/hum])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([dist-bzip2])

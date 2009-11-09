@@ -34,6 +34,7 @@ humdoc_DATA = \
 
 EXTRA_DIST = \
 	org.washedup.Hum.service.in \
+	hum.desktop \
 	$(humdoc_DATA) \
 	intltool-extract.in \
 	intltool-merge.in \

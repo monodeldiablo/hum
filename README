@@ -1,66 +1,28 @@
-                    Hum -- The Low Calorie Music Manager
-                    ====================================
-                          http://launchpad.net/hum
+Hum -- The Low Calorie Music Manager
+====================================
+http://github.com/monodeldiablo/hum/
 
-	USERS
+What is Hum?
+------------
+Hum aims to be a lightweight, quick, easy-to-use music manager with powerful
+search, collection, and tagging abilities. 
 
-1)	If you're a user, what are you doing with the source? Someone should have 
-	packaged this for your distribution. If you're some sort of masochist, 
-	though, then you should probably consult the INSTALL file for more 
-	information on configuring and installing Hum (don't worry, it's not that 
-	hard... I was just teasing you). Before installing, make sure you've got the
-	GTK, Tracker and GStreamer libraries installed. 
+'But wait!', Hum hears you plaintively cry, 'How can Hum have its cake and eat
+it, too?'
 
-2)	If you encounter any bugs whilst using Hum, please file a ticket on Hum's 
-	project site (http://launchpad.net/hum). In fact, file a ticket for any and 
-	every trivial little thing you can think of. The more suggestions I get from
-	you, the user, the more polished Hum can be. 
+Well, by standing on the shoulders of giants, that's how. To this end, Hum
+plans on letting [Tracker](http://www.tracker-project.org/) manage the
+collection, search, metadata, and tagging functionalities, while the equally
+awesome [GStreamer](http://gstreamer.freedesktop.org) manages all the playback
+nastiness. 
 
-3)	If you want to help develop Hum, post a patch to the project site and ask
-	to be included as a developer. I'm not picky. Seriously... look at how bad
-	my code is already. Read the DEVELOPERS entry below for more on this 
-	exciting prospect. 
-	
-4)	Rock on!
+Smart, huh?
 
+At the moment, however, Hum is a mere shadow. It is a hollow and barren shell
+of what it could potentially be, barely capable of even the simplest tasks. It
+yearns for love and care, the kind of tender nurturing that only other open
+source developers with a passion for simplicity and usability can give.
 
-	MAINTAINERS
-
-1)	Packaging information should be in the INSTALL file. You know how to do this
-	better than I ever could. This is a pretty vanilla application and the only 
-	dependencies to speak of are listed above. 
-	
-2)	If I've done something horrendously wrong with regard to standard packaging
-	procedure, please let me know and I'll rectify things ASAP. It's not 
-	intentional, I'm just ignorant. 
-
-3)	Rock on!
-
-
-	DEVELOPERS
-
-1)	Don't feel left out because I left you for last... I still love you. I would
-	love your contributions even more, however. Even if you're as terrible a 
-	programmer as myself, Hum could still use your documentation/testing/drawing 
-	skills. 
-	
-2)	Check out the TODO file for a list of outstanding major issues. If one or 
-	more of them seem right up your alley, well then don't let me stand in your
-	way! Once you've satisfactorily killed a bug or implemented a feature, just
-	post a patch and, if (when) it's included (and/or you're accepted as a main
-	developer), remove the appropriate line from the TODO file. 
-
-3)	If TODO files aren't your style (they are so 1976), then try triaging a bug 
-	or 12 at the project site. This is the preferred method of development 
-	because it's easier to share the load and keep track of contributions. 
-	
-4)	When submitting a patch or committing a change to the repository, please 
-	include an appropriate log message. This makes it easier for everybody to 
-	keep track of what changes have been made, by whom and how. And, more 
-	importantly, it makes it easier for me to give you the credit you deserve. 
-	For a great reference on how to write friendly log messages, check out the
-	official Subversion log message rules 
-	(http://subversion.tigris.org/hacking.html#log-messages). 
-
-5)	Rock on!
+Won't you help turn this homely little app into something your mother would
+enjoy listening to her Benny Goodman on?
 

@@ -28,13 +28,13 @@ enjoy listening to her Benny Goodman on?
 How can I get my grubby little hands on it?
 -------------------------------------------
 Ideally, a package for it exists within your Linux distribution's repository.
-If, however, it does not, you may download the latest source tarball from the
-project site at http://github.com/monodeldiablo/hum/downloads. Ensure that you
-have recent versions of Vala, Tracker, GTK, and GStreamer, then invoke this:
+If, however, it does not, you may [download the latest source tarball](http://github.com/monodeldiablo/hum/downloads)
+from the project site. Ensure that you have recent versions of Vala, Tracker,
+GTK, and GStreamer, then invoke this:
 
   ./configure && make && make install
 
-If that didn't work and you can't play with Hum, file an issue at the project
-site (http://github.com/monodeldiablo/hum/issues) and we'll get on it. Better
-yet, contribute a patch and we can become best friends!
+If that didn't work and you can't play with Hum, [file an issue](http://github.com/monodeldiablo/hum/issues)
+at the project site and we'll get on it. Better yet, contribute a patch and we
+can become best friends!
 

@@ -32,6 +32,9 @@ humdoc_DATA = \
 	NEWS \
 	$(NULL)
 
+README:
+	cp README.markdown README
+
 EXTRA_DIST = \
 	org.washedup.Hum.service.in \
 	hum.desktop \

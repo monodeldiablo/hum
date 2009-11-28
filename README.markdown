@@ -1,4 +1,4 @@
-Hum -- The Low Calorie Music Manager
+Hum -- The low calorie music manager
 ====================================
 http://github.com/monodeldiablo/hum/
 
@@ -25,4 +25,5 @@ source developers with a passion for simplicity and usability can give.
 
 Won't you help turn this homely little app into something your mother would
 enjoy listening to her Benny Goodman on?
+
 

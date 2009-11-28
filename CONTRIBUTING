@@ -1,8 +1,8 @@
-Hum -- The Low Calorie Music Manager
+Hum -- The low calorie music manager
 ====================================
 http://github.com/monodeldiablo/hum/
 
-USERS
+Users
 -----
 
 1) If you're a user, what are you doing with the source? Someone should have 
@@ -19,13 +19,13 @@ USERS
 
 3) If you want to help develop Hum, post a patch to the project site and ask
    to be included as a developer. I'm not picky. Seriously... look at how bad
-   my code is already. Read the DEVELOPERS entry below for more on this 
+   my code is already. Read the "Developers" entry below for more on this 
    exciting prospect. 
 	
 4) Rock on!
 
 
-MAINTAINERS
+Maintainers
 -----------
 
 1) Packaging information should be in the INSTALL file. You know how to do this
@@ -39,7 +39,7 @@ MAINTAINERS
 3) Rock on!
 
 
-DEVELOPERS
+Developers
 ----------
 
 1) Don't feel left out because I left you for last... I still love you. I would

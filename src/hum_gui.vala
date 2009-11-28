@@ -54,6 +54,7 @@ namespace Hum
 	public class UserInterface
 	{
 		public Gtk.Window window;
+		public Gtk.ImageMenuItem about_menu_item;
 		public Gtk.Statusbar status_bar;
 		public Gtk.ToolButton play_button;
 		public Gtk.ToolButton pause_button;
@@ -116,6 +117,7 @@ namespace Hum
 	
 			// Assign the widgets to a variable for manipulation later.
 			this.window = (Gtk.Window) builder.get_object ("main_window");
+			this.about_menu_item = (Gtk.ImageMenuItem) builder.get_object ("about_menu_item");
 			this.status_bar = (Gtk.Statusbar) builder.get_object ("status_bar");
 			this.play_button = (Gtk.ToolButton) builder.get_object ("play_button");
 			this.pause_button = (Gtk.ToolButton) builder.get_object ("pause_button");
@@ -277,6 +279,8 @@ namespace Hum
 			// If the window is closed, what's the point?
 			this.window.destroy += quit;
 
+			this.about_menu_item.activate += show_about_dialog;
+
 			this.play_button.clicked += handle_play_clicked;
 			this.pause_button.clicked += handle_pause_clicked;
 			this.prev_button.clicked += handle_prev_clicked;
@@ -339,6 +343,22 @@ namespace Hum
 
 			this.repeat_button.active = repeat_toggled;
 			this.shuffle_button.active = shuffle_toggled;
+		}
+
+		// FIXME: Edit the close button to actually close the window.
+		private void show_about_dialog ()
+		{
+			Gtk.AboutDialog about_dialog = new Gtk.AboutDialog ();
+
+			about_dialog.authors = {"Brian Davis <brian.william.davis@gmail.com"};
+			about_dialog.comments = "the low calorie music manager";
+			about_dialog.copyright = "Copyright © 2007-2009 Brian Davis";
+			about_dialog.logo_icon_name = "audio-x-generic";
+			about_dialog.program_name = "Hum Music Player";
+			about_dialog.version = Config.VERSION;
+			about_dialog.website = "http://washedup.org";
+
+			about_dialog.show_all ();
 		}
 
 		private void show_pause_button ()

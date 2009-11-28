@@ -167,6 +167,14 @@ namespace Hum
 
 			// Update the interface to reflect the backend.
 			set_up_interface ();
+
+			// If the application was launched with arguments, try
+			// to load them as tracks.
+			for (int i = 1; i < args.length; i++)
+			{
+				string uri = GLib.Filename.to_uri (args[i]);
+				this.player.AddTrack (uri, -1);
+			}
 		}
 	
 		// Set up the track list.
@@ -564,36 +572,51 @@ namespace Hum
 			this.browse_select.get_selected (out model, out selection);
 			int position = this.playlist_store.get_path (selection).to_string ().to_int ();
 
-			// "delete" was pressed
-			if (event.hardware_keycode == 119)
+			switch (event.hardware_keycode)
 			{
-				this.player.RemoveTrack (position);
-			}
+				// "delete" was pressed
+				case 119:
+					this.player.RemoveTrack (position);
+					break;
 
-			// "enter" was pressed
-			else if (event.hardware_keycode == 36)
-			{
-				this.player.Play (position);
-			}
+				// "enter" was pressed
+				case 36:
+					this.player.Play (position);
+					break;
 
-			// "space" was pressed
-			else if (event.hardware_keycode == 65)
-			{
-				string status = this.player.GetPlaybackStatus ();
-				if (status == "PLAYING")
-				{
-					this.player.Pause ();
-				}
+				// "space" was pressed
+				case 65:
+					string status = this.player.GetPlaybackStatus ();
+					if (status == "PLAYING")
+					{
+						this.player.Pause ();
+					}
 
-				else
-				{
-					this.player.Play ();
-				}
-			}
+					else
+					{
+						this.player.Play (position);
+					}
+					break;
 
-			else
-			{
-				debug ("%d pressed", event.hardware_keycode);
+				// "up" or "p" was pressed
+				case 111:
+				case 33:
+					int new_position = (position - 1) % this.playlist_store.length;
+					Gtk.TreePath new_path = new Gtk.TreePath.from_indices (new_position, -1);
+					this.browse_select.select_path (new_path);
+					break;
+
+				// "down" or "n" was pressed
+				case 116:
+				case 57:
+					int new_position = (position + 1) % this.playlist_store.length;
+					Gtk.TreePath new_path = new Gtk.TreePath.from_indices (new_position, -1);
+					this.browse_select.select_path (new_path);
+					break;
+
+				default:
+					debug ("%d pressed", event.hardware_keycode);
+					break;
 			}
 
 			return true;

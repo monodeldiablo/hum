@@ -1,5 +1,3 @@
-* check that URIs are valid before adding them to the playlist
-* support playlist enqueing as a startup argument, to support opening the application when a track is double clicked (e.g. hum-gtk /path/to/file)
 * implement shuffle
 * fix seeking while paused
 * implement drag-n-drop from search results to playlist

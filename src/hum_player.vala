@@ -239,24 +239,30 @@ namespace Hum
 		// FIXME: We should first check if the URI is even valid before proceeding.
 		public void add_track (string uri, int position = -1)
 		{
-			if (position == -1)
-			{
-				position = (int) this.playlist.length ();
-			}
-			
-			this.playlist.insert (uri, position);
+			// FIXME: Catch the ConvertError that this throws...
+			string path = GLib.Filename.from_uri (uri);
 
-			debug ("added '%s' to the playlist at position %d", uri, position);
-			
-			// If we add something ahead of the currently-selected track, its position
-			// changes.
-			if (position <= this.current_track)
+			if (FileUtils.test (path, GLib.FileTest.EXISTS))
 			{
-				this.current_track += 1;
-			}
+				if (position == -1)
+				{
+					position = (int) this.playlist.length ();
+				}
 
-			// Emit a helpful signal.
-			track_added (uri, position);
+				this.playlist.insert (uri, position);
+
+				debug ("added '%s' to the playlist at position %d", uri, position);
+			
+				// If we add something ahead of the currently-selected track, its position
+				// changes.
+				if (position <= this.current_track)
+				{
+					this.current_track += 1;
+				}
+
+				// Emit a helpful signal.
+				track_added (uri, position);
+			}
 		}
 
 		// Delete the track at position *position* from the playlist.

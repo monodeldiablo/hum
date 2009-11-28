@@ -2,9 +2,7 @@
 * support playlist enqueing as a startup argument, to support opening the application when a track is double clicked (e.g. hum-gtk /path/to/file)
 * implement shuffle
 * fix seeking while paused
-* implement playlist reordering
 * implement drag-n-drop from search results to playlist
-* implement playlist track removal
 * implement playlist clearing
 * force ellipses on the track label and window title to prevent weird window resizing crap
 * implement tooltips over view cells, so that users can see full titles, etc.

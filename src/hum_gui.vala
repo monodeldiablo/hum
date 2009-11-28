@@ -278,11 +278,13 @@ namespace Hum
 
 			this.progress_slider.value_changed += handle_slider_moved;
 			this.search_button.clicked += handle_search_requested;
-			this.search_entry.activate += handle_search_requested;
+			this.search_entry.changed += handle_search_requested;
 			this.search_entry.icon_release += handle_search_cleared;
 			
 			this.search_view.row_activated += handle_search_view_selected;
 			this.playlist_view.row_activated += handle_playlist_view_selected;
+			this.playlist_view.key_press_event += handle_playlist_view_key_pressed;
+			this.playlist_view.drag_drop += handle_drag_drop;
 
 			// Signals from hum-player.
 			this.player.PlayingTrack += handle_playing_track;
@@ -291,6 +293,7 @@ namespace Hum
 			this.player.RepeatToggled += handle_repeat_toggled;
 			this.player.ShuffleToggled += handle_shuffle_toggled;
 			this.player.TrackAdded += handle_track_added;
+			this.player.TrackRemoved += handle_track_removed;
 		}
 
 		// Bring the interface up to date with the back end.
@@ -464,6 +467,15 @@ namespace Hum
 				-1);
 		}
 
+		private void remove_track_from_view (Gtk.ListStore store, int position)
+		{
+			Gtk.TreeIter iter;
+			
+			this.playlist_store.get_iter (out iter, new Gtk.TreePath.from_indices (position, -1));
+
+			store.remove (iter);
+		}
+
 		// FIXME: Instead of always returning true, see if it would be
 		//        cheaper/cleaner/wiser to return false if the playback status is
 		//        PAUSED or the track is at its end, etc...
@@ -475,8 +487,6 @@ namespace Hum
 			this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
 			this.duration_label.set_text ("%s of %s".printf (usec_to_string (progress), (string) duration));
 			
-			// FIXME: If we want to hook into the "value_changed" signal later to
-			//        control seeking, this could be an issue...
 			this.current_progress = (double) progress;
 			this.progress_slider.set_value ((double) progress);
 
@@ -544,6 +554,68 @@ namespace Hum
 		{
 			int track = path.to_string ().to_int ();
 			this.player.Play (track);
+		}
+
+		public bool handle_playlist_view_key_pressed (Gdk.EventKey event)
+		{
+			Gtk.TreeIter selection;
+			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
+			
+			this.browse_select.get_selected (out model, out selection);
+			int position = this.playlist_store.get_path (selection).to_string ().to_int ();
+
+			// "delete" was pressed
+			if (event.hardware_keycode == 119)
+			{
+				this.player.RemoveTrack (position);
+			}
+
+			// "enter" was pressed
+			else if (event.hardware_keycode == 36)
+			{
+				this.player.Play (position);
+			}
+
+			// "space" was pressed
+			else if (event.hardware_keycode == 65)
+			{
+				string status = this.player.GetPlaybackStatus ();
+				if (status == "PLAYING")
+				{
+					this.player.Pause ();
+				}
+
+				else
+				{
+					this.player.Play ();
+				}
+			}
+
+			else
+			{
+				debug ("%d pressed", event.hardware_keycode);
+			}
+
+			return true;
+		}
+
+		// FIXME: Make this work with stuff dragged from the desktop
+		//        and the search view.
+		public bool handle_drag_drop (Gdk.DragContext context, int x, int y, uint time)
+		{
+			Gtk.TreePath path;
+			Gtk.TreeViewDropPosition pos;
+			Gtk.TreeIter selection;
+			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
+			GLib.Value uri;
+
+			this.browse_select.get_selected (out model, out selection);
+			this.playlist_view.get_dest_row_at_pos (x, y, out path, out pos);
+			this.playlist_store.get_value (selection, Columns.URI, out uri);
+			this.player.RemoveTrack (this.playlist_store.get_string_from_iter (selection).to_int ());
+			this.player.AddTrack ((string) uri, path.to_string ().to_int ());
+
+			return true;
 		}
 
 		// Pass along the command to play the current track or resume play.
@@ -641,23 +713,33 @@ namespace Hum
 		//        expand to the number of results, stopping at some sane maximum.
 		//        Investigate the use of Gtk.TreeView.get_cell_area () to do this.
 		// FIXME: Investigate live search.
-		// FIXME: Clear the existing search data before conducting a new one (this
-		//        includes retracting the results pane).
 		public void handle_search_requested ()
 		{
+			this.search_entry.set_progress_fraction (0.0);
+			this.search_store.clear ();
+
 			string terms = this.search_entry.text;
 			string[] uris = this.query_engine.search (terms);
 
-			foreach (string uri in uris)
+			if (uris.length > 0)
 			{
-				add_track_to_view (this.search_store, uri);
+				double step = 1.0 / (double) uris.length;
+
+				foreach (string uri in uris)
+				{
+					add_track_to_view (this.search_store, uri);
+					this.search_entry.set_progress_fraction (this.search_entry.get_progress_fraction () + step);
+				}
+
+				this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, expand_search_pane);
 			}
 
-			this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, expand_search_pane);
+			else
+			{
+				this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, shrink_search_pane);
+			}
 		}
 
-		// FIXME: Clear the search terms, clear the store and view, and animate the
-		//        pane retracting.
 		public void handle_search_cleared ()
 		{
 			this.search_entry.text = "";
@@ -693,6 +775,11 @@ namespace Hum
 		public void handle_track_added (dynamic DBus.Object player, string uri, int position)
 		{
 			add_track_to_view (this.playlist_store, uri, position);
+		}
+
+		public void handle_track_removed (dynamic DBus.Object player, int position)
+		{
+			remove_track_from_view (this.playlist_store, position);
 		}
 
 		public void quit ()

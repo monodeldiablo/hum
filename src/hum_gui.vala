@@ -504,21 +504,28 @@ namespace Hum
 			store.remove (iter);
 		}
 
-		// FIXME: Instead of always returning true, see if it would be
-		//        cheaper/cleaner/wiser to return false if the playback status is
-		//        PAUSED or the track is at its end, etc...
 		private bool update_track_progress ()
 		{
-			int64 progress = this.player.GetProgress ();
-			GLib.Value duration;
+			string status = this.player.GetPlaybackStatus ();
 
-			this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
-			this.duration_label.set_text ("%s of %s".printf (usec_to_string (progress), (string) duration));
+			if (status == "PLAYING")
+			{
+				int64 progress = this.player.GetProgress ();
+				GLib.Value duration;
+
+				this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
+				this.duration_label.set_text ("%s of %s".printf (usec_to_string (progress), (string) duration));
 			
-			this.current_progress = (double) progress;
-			this.progress_slider.set_value ((double) progress);
+				this.current_progress = (double) progress;
+				this.progress_slider.set_value ((double) progress);
 
-			return true;
+				return true;
+			}
+
+			else
+			{
+				return false;
+			}
 		}
 
 		private bool expand_search_pane ()

@@ -1,4 +1,3 @@
-* implement shuffle
 * fix seeking while paused
 * implement drag-n-drop from search results to playlist
 * implement add icon on search result hover
@@ -18,11 +17,14 @@
 * figure out how to manage right-click behavior
 * figure out what to put in the menubar
   * implement playlist clearing (probably best through a menu)
+* implement a tray icon (separate front end?)
+* register hum-gtk to be the default handler for audio mime types
 * clean up and finalize installation bundle for packaging
 * investigate using DecodeBin for crossfading (what impact does this have on playlist?)
 * check & reduce memory footprint of hum-gtk and hum-player
 * stick persistent settings in GConf
 * investigate volume control (not necessary for a first release)
+* implement better shuffle
 * investigate the benefits of using a UI manager
 * log information to a standard location (in ~/.local/share/hum/hum-{gtk,player}.log)
 * clean up HumQueryEngine and apply some sanity to its methods and design

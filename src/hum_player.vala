@@ -402,17 +402,25 @@ namespace Hum
 		{
 			if (this.playlist.length () > 0)
 			{
-				if (this.current_track >= this.playlist.length () - 1)
+				if (this.shuffle)
 				{
-					if (repeat)
-					{
-						play (0);
-					}
+					play (Random.int_range (0, (int) this.playlist.length () - 1));
 				}
-	
+
 				else
 				{
-					play (this.current_track + 1);
+					if (this.current_track >= this.playlist.length () - 1)
+					{
+						if (repeat)
+						{
+							play (0);
+						}
+					}
+
+					else
+					{
+						play (this.current_track + 1);
+					}
 				}
 	
 				debug ("skipped to the next track in the playlist at position %d", this.current_track);
@@ -426,19 +434,27 @@ namespace Hum
 		{
 			if (this.playlist.length () > 0)
 			{
-				if (this.current_track <= 0)
+				if (this.shuffle)
 				{
-					if (repeat)
-					{
-						play ((int) this.playlist.length () - 1);
-					}
+					play (Random.int_range (0, (int) this.playlist.length () - 1));
 				}
-	
+
 				else
 				{
-					play (this.current_track - 1);
+					if (this.current_track <= 0)
+					{
+						if (repeat)
+						{
+							play ((int) this.playlist.length () - 1);
+						}
+					}
+
+					else
+					{
+						play (this.current_track - 1);
+					}
 				}
-	
+
 				debug ("skipped to the previous track in the playlist at position %d", this.current_track);
 			}
 		}

@@ -2,11 +2,13 @@
 title: Hum
 layout: default
 ---
- 
+
 What is Hum?
 ------------
 Hum aims to be a lightweight, quick, easy-to-use music manager with powerful
-search, collection, and tagging abilities. 
+search, collection, and tagging abilities.
+
+![Hum in action](HumPausedSearch.png)
 
 'But wait!', Hum hears you plaintively cry, 'How can Hum have its cake and eat
 it, too?'

@@ -172,10 +172,16 @@ namespace Hum
 
 			// If the application was launched with arguments, try
 			// to load them as tracks.
-			for (int i = 1; i < args.length; i++)
+			if (args.length > 1)
 			{
-				string uri = GLib.Filename.to_uri (args[i]);
-				this.player.AddTrack (uri, -1);
+				for (int i = 1; i < args.length; i++)
+				{
+					string uri = GLib.Filename.to_uri (args[i]);
+
+					this.player.AddTrack (uri, -1);
+				}
+
+				this.player.Play (-1);
 			}
 		}
 	
@@ -302,6 +308,7 @@ namespace Hum
 			this.player.PlayingTrack += handle_playing_track;
 			this.player.PausedPlayback += handle_paused_playback;
 			this.player.StoppedPlayback += handle_stopped_playback;
+			this.player.Seeked += handle_seeked;
 			this.player.RepeatToggled += handle_repeat_toggled;
 			this.player.ShuffleToggled += handle_shuffle_toggled;
 			this.player.TrackAdded += handle_track_added;
@@ -388,8 +395,6 @@ namespace Hum
 				Columns.STATUS_OR_ADD_TO_PLAYLIST, "gtk-media-play", -1);
 
 			// Add a timeout to update the track progress.
-			// FIXME: We should also remove this timeout when the track stops, to keep
-			//        the app from stupidly pinging Hum for updates every half a second.
 			this.progress_slider.set_range (0.0, (double) track.duration);
 			this.update_timeout_id = (int) GLib.Timeout.add (this.update_period, update_track_progress);
 
@@ -504,21 +509,26 @@ namespace Hum
 			store.remove (iter);
 		}
 
+		private void set_track_position (int64 usec)
+		{
+			GLib.Value duration;
+
+			this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
+			this.duration_label.set_text ("%s of %s".printf (usec_to_string (usec), (string) duration));
+
+			this.current_progress = (double) usec;
+			this.progress_slider.set_value ((double) usec);
+		}
+
 		private bool update_track_progress ()
 		{
 			string status = this.player.GetPlaybackStatus ();
+			int64 progress = this.player.GetProgress ();
+
+			set_track_position (progress);
 
 			if (status == "PLAYING")
 			{
-				int64 progress = this.player.GetProgress ();
-				GLib.Value duration;
-
-				this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
-				this.duration_label.set_text ("%s of %s".printf (usec_to_string (progress), (string) duration));
-			
-				this.current_progress = (double) progress;
-				this.progress_slider.set_value ((double) progress);
-
 				return true;
 			}
 
@@ -810,6 +820,11 @@ namespace Hum
 		public void handle_stopped_playback ()
 		{
 			set_up_stopped_state ();
+		}
+
+		public void handle_seeked (dynamic DBus.Object player, int64 usec)
+		{
+			set_track_position (usec);
 		}
 
 		public void handle_repeat_toggled (dynamic DBus.Object player, bool do_repeat)

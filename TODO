@@ -1,4 +1,3 @@
-* fix seeking while paused
 * implement drag-n-drop from search results to playlist
 * implement add icon on search result hover
 * force ellipses on the track label and window title to prevent weird window resizing crap
@@ -8,7 +7,6 @@
   * provide a red flash or some other feedback in the background of the search entry if no results
   * add asynchronous search
   * provide search progress feedback in the background of the search entry
-  * implement live search
   * paginate results to tighten memory footprint
 * extract the search/playlist view code into separate files (maybe)
 * clean up/simplify/condense the signal & callback code

@@ -1,6 +1,5 @@
 * implement drag-n-drop from search results to playlist
 * implement add icon on search result hover
-* force ellipses on the track label and window title to prevent weird window resizing crap
 * implement tooltips over view cells, so that users can see full titles, etc.
 * clean up the search results pane expand/shrink behavior
   * only expand the window for as many results as there are, up to 5
@@ -8,10 +7,11 @@
   * add asynchronous search
   * provide search progress feedback in the background of the search entry
   * paginate results to tighten memory footprint
+~ create "about" dialog
+* fix (if possible) the various warnings during compilation
 * extract the search/playlist view code into separate files (maybe)
 * clean up/simplify/condense the signal & callback code
 * more thoroughly comment hum_gui.vala
-~ create "about" dialog
 * figure out how to manage right-click behavior
 * figure out what to put in the menubar
   * implement playlist clearing (probably best through a menu)

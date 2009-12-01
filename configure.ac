@@ -1,4 +1,4 @@
-AC_INIT([Hum: The Low-Calorie Music Manager], [0.2.0], [brian.william.davis@gmail.com], [hum], [http://launchpad.net/hum])
+AC_INIT([Hum: The low calorie music manager], [0.2.0], [brian.william.davis@gmail.com], [hum], [http://github.com/monodeldiablo/hum])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([dist-bzip2])
@@ -12,7 +12,7 @@ AC_PROG_LIBTOOL
 AC_PATH_PROG(VALAC, valac, valac)
 AC_SUBST(VALAC)
 
-AH_TEMPLATE([GETTEXT_PACKAGE], [Hum: The Low-Calorie Music Manager])
+AH_TEMPLATE([GETTEXT_PACKAGE], [Hum: The low calorie music manager])
 GETTEXT_PACKAGE=hum
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE")
 AC_SUBST(GETTEXT_PACKAGE)

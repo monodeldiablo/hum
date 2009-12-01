@@ -250,6 +250,8 @@
                 <property name="xpad">5</property>
                 <property name="label" translatable="yes">&lt;b&gt;Not Playing&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
+                <property name="ellipsize">end</property>
+                <property name="single_line_mode">True</property>
               </object>
               <packing>
                 <property name="position">0</property>

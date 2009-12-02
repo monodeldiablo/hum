@@ -1,4 +1,3 @@
-* implement drag-n-drop from search results to playlist
 * implement add icon on search result hover
 * implement tooltips over view cells, so that users can see full titles, etc.
 * clean up the search results pane expand/shrink behavior

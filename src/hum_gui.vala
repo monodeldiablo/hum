@@ -531,6 +531,31 @@ namespace Hum
 			}
 		}
 
+		private void toggle_play ()
+		{
+			Gtk.TreeIter selection;
+			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
+			bool is_selected = this.playlist_select.get_selected (out model, out selection);
+			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
+			string status = this.player.GetPlaybackStatus ();
+			int track = -1;
+
+			// If playback is currently paused and the selected track is also the
+			// playing track, just resume.
+			if (is_selected && selection_is_valid)
+			{
+				int position = this.playlist_store.get_path (selection).to_string ().to_int ();
+				int current_position = this.player.GetCurrentTrack ();
+
+				if (status != "PAUSED" || position != current_position)
+				{
+					track = position;
+				}
+			}
+
+			this.player.Play (track);
+		}
+
 		private void add_track_to_view (Gtk.ListStore store, string uri, int position = -1)
 		{
 			Gtk.TreeIter iter;
@@ -570,11 +595,14 @@ namespace Hum
 		{
 			GLib.Value duration;
 
-			this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
-			this.duration_label.set_text ("%s of %s".printf (usec_to_string (usec), (string) duration));
+			if (this.playlist_store.iter_is_valid (this.current_iter))
+			{
+				this.playlist_store.get_value (this.current_iter, Columns.DURATION, out duration);
+				this.duration_label.set_text ("%s of %s".printf (usec_to_string (usec), (string) duration));
 
-			this.current_progress = (double) usec;
-			this.progress_slider.set_value ((double) usec);
+				this.current_progress = (double) usec;
+				this.progress_slider.set_value ((double) usec);
+			}
 		}
 
 		private bool update_track_progress ()
@@ -686,9 +714,9 @@ namespace Hum
 						this.player.Pause ();
 					}
 
-					else
+					else if (status == "PAUSED")
 					{
-						this.player.Play (position);
+						toggle_play ();
 					}
 					break;
 
@@ -839,30 +867,9 @@ namespace Hum
 		}
 
 		// Pass along the command to play the current track or resume play.
-		// FIXME: If an item is selected in the playlist, play that item instead of
-		//        just blindly passing along -1.
 		public void handle_play_clicked ()
 		{
-			Gtk.TreeIter selection;
-			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
-			bool is_selected = this.playlist_select.get_selected (out model, out selection);
-			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
-			string status = this.player.GetPlaybackStatus ();
-			int track;
-			
-			// If playback is currently paused, just resume.
-			if (status == "PAUSED" && selection_is_valid && is_selected)
-			{
-				Gtk.TreePath path = this.playlist_store.get_path (selection);
-				track = path.to_string ().to_int ();
-			}
-
-			else
-			{
-				track = -1;
-			}
-
-			this.player.Play (track);
+			toggle_play ();
 		}
 
 		// Pass along the command to pause playback.

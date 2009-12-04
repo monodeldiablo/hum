@@ -34,17 +34,18 @@ namespace Hum
 		private dynamic DBus.Object tracker_metadata;
 		
 		private string service_type = "Music";
-		private string[] fields = {"Audio:Title",
+		private string[] fields = {
+			"Audio:Title",
 			"Audio:TrackNo",
 			"Audio:Genre",
 			"Audio:Artist",
 			"Audio:Album",
-			"Audio:Duration",
-			"File:Size",
-			"Audio:Bitrate",
 			"Audio:ReleaseDate",
-			"Audio:Codec",
-			"DC:Keywords"};
+			"Audio:Duration"};//,
+			//"File:Size",
+			//"Audio:Bitrate",
+			//"Audio:Codec",
+			//"DC:Keywords"};
 		
 		construct
 		{
@@ -153,8 +154,8 @@ namespace Hum
 				track.genre = metadata[2];
 				track.artist = metadata[3];
 				track.album = metadata[4];
-				track.duration = metadata[5].to_int64 () * useconds_in_second;
-				track.release_date = metadata[8];
+				track.release_date = metadata[5];
+				track.duration = metadata[6].to_int64 () * useconds_in_second;
 			}
 			catch (GLib.Error e)
 			{

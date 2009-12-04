@@ -404,7 +404,7 @@ namespace Hum
 			{
 				if (this.shuffle)
 				{
-					play (Random.int_range (0, (int) this.playlist.length () - 1));
+					play (Random.int_range (0, (int) this.playlist.length ()));
 				}
 
 				else
@@ -436,7 +436,7 @@ namespace Hum
 			{
 				if (this.shuffle)
 				{
-					play (Random.int_range (0, (int) this.playlist.length () - 1));
+					play (Random.int_range (0, (int) this.playlist.length ()));
 				}
 
 				else

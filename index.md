@@ -43,13 +43,13 @@ Packagers, please let me know if this is the case, and I'll gladly update this
 page to reflect the fruits of your labor. Heck, I'll be pleased if anybody
 other than my wife and I use this stuff.
 
-=== Arch Linux ===
+### Arch Linux ###
 I've taken the liberty of throwing together a
 [PKGBUILD](http://github.com/monodeldiablo/hum/downloads/PKGBUILD) for you Arch
 Linux users out there. It works for me, which was the only verification I could
 be bothered to do.
 
-=== Everybody else ===
+### Everybody else ###
 Tough poopy! HAHAHAHAHAHAHA!!!
 
 Just kidding. Ehem.

@@ -31,23 +31,41 @@ enjoy listening to her Benny Goodman on?
 
 Dependencies
 ------------
- * Vala 0.7.6 or better (to build the source)
- * Tracker v0.6.95 or better
+ * Vala 0.7.6 or better (if you feel like building the source)
+ * Tracker 0.6.95 or better
  * GTK 2.16 or better
  * GStreamer 0.10 or better
 
-How can I get my grubby little hands on it?
--------------------------------------------
+How can I get my grubby little mitts on this greasy goodness?
+-------------------------------------------------------------
 Ideally, a package for it exists within your Linux distribution's repository.
-If, however, it does not, you may [download the latest source tarball](http://github.com/monodeldiablo/hum/downloads)
-from the project site. Ensure that you have recent versions of Vala, Tracker,
-GTK, and GStreamer, then invoke this:
+Packagers, please let me know if this is the case, and I'll gladly update this
+page to reflect the fruits of your labor. Heck, I'll be pleased if anybody
+other than my wife and I use this stuff.
+
+=== Arch Linux ===
+I've taken the liberty of throwing together a
+[PKGBUILD](http://github.com/monodeldiablo/hum/downloads/PKGBUILD) for you Arch
+Linux users out there. It works for me, which was the only verification I could
+be bothered to do.
+
+=== Everybody else ===
+Tough poopy! HAHAHAHAHAHAHA!!!
+
+Just kidding. Ehem.
+
+For those of you living in different distros, you may
+[download](http://github.com/monodeldiablo/hum/downloads) the latest source
+tarball from the project site (ignore the "tags" section... that way lies
+doom). Ensure that you have recent versions of Vala, Tracker, GTK, and
+GStreamer, then cross your fingers and invoke this madness:
 
     $ ./configure && make && make install
 
-If that didn't work and you can't play with Hum, [file an issue](http://github.com/monodeldiablo/hum/issues)
-at the project site and we'll get on it. Better yet, contribute a patch and we
-can become best friends!
+If that didn't work and you can't play with Hum,
+[file an issue](http://github.com/monodeldiablo/hum/issues) at the project site
+and work shall commence with haste (unless I'm on a beach!). Better yet,
+contribute a patch and we can become best friends!
 
 License
 -------

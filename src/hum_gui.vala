@@ -744,25 +744,6 @@ namespace Hum
 			return true;
 		}
 
-		// FIXME: Make this work with stuff dragged from the desktop
-		//        and the search view.
-		public bool handle_drag_drop (Gdk.DragContext context, int x, int y, uint time)
-		{
-			Gtk.TreePath path;
-			Gtk.TreeViewDropPosition pos;
-			Gtk.TreeIter selection;
-			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
-			GLib.Value uri;
-
-			this.playlist_select.get_selected (out model, out selection);
-			this.playlist_view.get_dest_row_at_pos (x, y, out path, out pos);
-			this.playlist_store.get_value (selection, Columns.URI, out uri);
-			this.player.RemoveTrack (this.playlist_store.get_string_from_iter (selection).to_int ());
-			this.player.AddTrack ((string) uri, path.to_string ().to_int ());
-
-			return true;
-		}
-
 		public void handle_drag_data_get (Gdk.DragContext context, Gtk.SelectionData selection_data, uint info, uint time)
 		{
 			Gtk.TreeModel model = (Gtk.TreeModel) this.search_store;
@@ -917,7 +898,6 @@ namespace Hum
 			this.player.SetShuffle (this.shuffle_button.active);
 		}
 
-		// FIXME: Seeking while paused does not work for some reason...
 		public void handle_slider_moved ()
 		{
 			double position = this.progress_slider.get_value ();

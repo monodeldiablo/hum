@@ -15,7 +15,7 @@
           <object class="GtkMenuBar" id="menubar">
             <property name="visible">True</property>
             <child>
-              <object class="GtkMenuItem" id="menuitem1">
+              <object class="GtkMenuItem" id="file_menu_item">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
@@ -23,35 +23,29 @@
                   <object class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem1">
-                        <property name="label">gtk-new</property>
+                      <object class="GtkImageMenuItem" id="open_menu_item">
+                        <property name="label">_Open playlist</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem2">
-                        <property name="label">gtk-open</property>
+                      <object class="GtkImageMenuItem" id="save_menu_item">
+                        <property name="label">_Save playlist</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image2</property>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem3">
-                        <property name="label">gtk-save</property>
+                      <object class="GtkImageMenuItem" id="save_as_menu_item">
+                        <property name="label">Save playlist as...</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem4">
-                        <property name="label">gtk-save-as</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image3</property>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                     <child>
@@ -60,7 +54,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem5">
+                      <object class="GtkImageMenuItem" id="quit_menu_item">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
@@ -72,42 +66,91 @@
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="menuitem2">
+              <object class="GtkMenuItem" id="edit_menu_item">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Edit</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu2">
+                  <object class="GtkMenu" id="menu3">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem6">
+                      <object class="GtkImageMenuItem" id="cut_menu_item">
                         <property name="label">gtk-cut</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem7">
+                      <object class="GtkImageMenuItem" id="copy_menu_item">
                         <property name="label">gtk-copy</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem8">
+                      <object class="GtkImageMenuItem" id="paste_menu_item">
                         <property name="label">gtk-paste</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem9">
-                        <property name="label">gtk-delete</property>
+                      <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
                         <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="select_all_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Select all</property>
                         <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="deselect_all_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Deselect all</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separatormenuitem4">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="add_menu_item">
+                        <property name="label" translatable="yes">Add to playlist</property>
+                        <property name="visible">True</property>
+                        <property name="image">image6</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="remove_menu_item">
+                        <property name="label" translatable="yes">Remove from playlist</property>
+                        <property name="visible">True</property>
+                        <property name="image">image5</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="imagemenuitem6">
+                        <property name="label" translatable="yes">Clear playlist</property>
+                        <property name="visible">True</property>
+                        <property name="image">image4</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separatormenuitem3">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="preferences_menu_item">
+                        <property name="label">gtk-preferences</property>
+                        <property name="visible">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -116,10 +159,22 @@
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="menuitem3">
+              <object class="GtkMenuItem" id="view_menu_item">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="menu2">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="tray_icon_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Tray icon</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
@@ -406,5 +461,29 @@
   <object class="GtkImage" id="search_image">
     <property name="visible">True</property>
     <property name="icon_name">system-search</property>
+  </object>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="stock">gtk-open</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="stock">gtk-save</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="stock">gtk-save-as</property>
+  </object>
+  <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="stock">gtk-clear</property>
+  </object>
+  <object class="GtkImage" id="image5">
+    <property name="visible">True</property>
+    <property name="stock">gtk-remove</property>
+  </object>
+  <object class="GtkImage" id="image6">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
   </object>
 </interface>

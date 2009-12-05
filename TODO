@@ -1,29 +1,65 @@
+v0.3
+----
+
+* figure out why DND from the desktop doesn't work
+* figure out why blank rows are appended to the playlist view when items are
+  dragged there
+* fix clients killing the backend while other clients are connected
+* create a dedicated UI file for the "about" dialog
+* figure out right-click behavior
+* more effectively organize the code
+  * stick the UI definition, manager, action groups, and instantiation bits
+    into hum_gui_common.vala
+  * extract the about dialog into hum_gui_about.vala
+  * extract the search/playlist view setup (including drag/drop &
+    [add,remove]_track_[to,from]_view ()) into hum_gui_views.vala
+  * extract the signal connection into hum_gui_signals.vala
+  * tie it all together (with UI instantiation, UI setup, quit(), and DBus
+    signal handling for hum-gtk), in hum_gui.vala
+* clean up/simplify/condense the signal & callback code
+* clean up HumQueryEngine and apply some sanity to its methods and design
+* more thoroughly comment all the code
+* fix the various warnings during compilation
+
+v0.4
+----
+
+* register hum-gtk to be the default handler for audio mime types
+* implement playlist clearing (probably best through a menu)
+* implement playlist loading and saving
+* provide a red flash or some other feedback in the background of the search
+  entry if no results
+* provide search progress feedback in the background of the search entry
+* only expand the search pane for as many results as there are, up to 5
 * implement add icon on search result hover
 * implement tooltips over view cells, so that users can see full titles, etc.
-* clean up the search results pane expand/shrink behavior
-  * only expand the window for as many results as there are, up to 5
-  * provide a red flash or some other feedback in the background of the search entry if no results
-  * add asynchronous search
-  * provide search progress feedback in the background of the search entry
-  * paginate results to tighten memory footprint
-~ create "about" dialog
-* fix (if possible) the various warnings during compilation
-* extract the search/playlist view code into separate files (maybe)
-* clean up/simplify/condense the signal & callback code
-* more thoroughly comment hum_gui.vala
-* figure out how to manage right-click behavior
-* figure out what to put in the menubar
-  * implement playlist clearing (probably best through a menu)
+* implement a "properties" dialog for selected tracks
+* this interface should allow for tagging and rating tracks
+
+v0.5
+----
+
+* paginate search results to tighten memory footprint
 * implement a tray icon (separate front end?)
-* register hum-gtk to be the default handler for audio mime types
-* clean up and finalize installation bundle for packaging
-* investigate using DecodeBin for crossfading (what impact does this have on playlist?)
-* check & reduce memory footprint of hum-gtk and hum-player
 * stick persistent settings in GConf
-* investigate volume control (not necessary for a first release)
+  * window size & position
+  * pane sizes
+  * show/hide tray icon
+* implement independent volume control
 * implement better shuffle
+* log information to a standard location
+  (in ~/.local/share/hum/hum-{gtk,player}.log)
+
+v?.?
+--------
+
+* add asynchronous search (really only useful if an empty search yields the
+  whole library, for performance costs, see the "paginate search results" point
+  above
+* profile & reduce memory footprint of hum-gtk and hum-player
+* investigate using DecodeBin for crossfading (what impact does this have on
+  playlist?)
 * investigate the benefits of using a UI manager
-* log information to a standard location (in ~/.local/share/hum/hum-{gtk,player}.log)
-* clean up HumQueryEngine and apply some sanity to its methods and design
-* investigate taglib
+* investigate taglib, or some alternate tag harvesting code
 * investigate "collate_key()" in the sorting code
+* implement a plugin interface

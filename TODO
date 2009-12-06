@@ -5,6 +5,7 @@ v0.3
 * figure out why blank rows are appended to the playlist view when items are
   dragged there
 * fix clients killing the backend while other clients are connected
+* ensure all strings are UTF8
 * create a dedicated UI file for the "about" dialog
 * figure out right-click behavior
 * more effectively organize the code

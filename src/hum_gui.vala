@@ -420,7 +420,7 @@ namespace Hum
 			about_dialog.logo_icon_name = "audio-x-generic";
 			about_dialog.program_name = "Hum Music Player";
 			about_dialog.version = Config.VERSION;
-			about_dialog.website = "http://washedup.org";
+			about_dialog.website = "http://github.com/monodeldiablo/hum";
 
 			about_dialog.show_all ();
 		}

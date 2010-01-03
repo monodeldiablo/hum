@@ -1,7 +1,6 @@
 v0.3
 ----
 
-* figure out why DND from the desktop doesn't work
 * figure out why blank rows are appended to the playlist view when items are
   dragged there
 * fix clients killing the backend while other clients are connected

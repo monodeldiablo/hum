@@ -794,6 +794,7 @@ namespace Hum
 
 			if (this.playlist_store.iter_is_valid (iter))
 			{
+				debug ("someone dragged something from %s here", selection_data.target.name ());
 				// If this was dragged from within the playlist view, treat it as a move.
 				switch (selection_data.target.name ())
 				{
@@ -835,10 +836,16 @@ namespace Hum
 					case "STRING":
 					case "text/plain":
 						string uri = (string) selection_data.data;
+
+						// NOTE: Dragging from the desktop appends a newline to the end of the
+						//       uri, which confuses the method AddTrack method.
+						uri = uri.strip ();
+
+						debug ("adding '%s' to the playlist at position %d", uri, playlist_position);
 						this.player.AddTrack (uri, playlist_position);
 						break;
 					default:
-						debug ("someone dragged something from %s here", selection_data.target.name ());
+						debug ("Hum doesn't know how to handle data from that source!");
 						break;
 				}
 				

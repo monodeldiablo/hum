@@ -5,7 +5,6 @@ v0.3
   dragged there
 * fix clients killing the backend while other clients are connected
 * ensure all strings are UTF8
-* create a dedicated UI file for the "about" dialog
 * figure out right-click behavior
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits

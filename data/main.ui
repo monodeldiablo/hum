@@ -77,6 +77,7 @@
                       <object class="GtkImageMenuItem" id="cut_menu_item">
                         <property name="label">gtk-cut</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -84,6 +85,7 @@
                       <object class="GtkImageMenuItem" id="copy_menu_item">
                         <property name="label">gtk-copy</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -91,6 +93,7 @@
                       <object class="GtkImageMenuItem" id="paste_menu_item">
                         <property name="label">gtk-paste</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -151,6 +154,7 @@
                       <object class="GtkImageMenuItem" id="preferences_menu_item">
                         <property name="label">gtk-preferences</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -191,6 +195,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
                       </object>
                     </child>
                   </object>

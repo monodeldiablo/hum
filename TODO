@@ -19,7 +19,6 @@ v0.3
 * clean up/simplify/condense the signal & callback code
 * clean up HumQueryEngine and apply some sanity to its methods and design
 * more thoroughly comment all the code
-* fix the various warnings during compilation
 
 v0.4
 ----

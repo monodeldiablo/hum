@@ -92,30 +92,37 @@ namespace Hum
 	
 		public UserInterface (string [] args)
 		{
-			this.conn = DBus.Bus.get (DBus.BusType.SESSION);
+			try
+			{
+				this.conn = DBus.Bus.get (DBus.BusType.SESSION);
+			}
+			catch (DBus.Error e)
+			{
+				critical ("Error connecting to the Hum daemon: %s", e.message);
+				quit ();
+			}
 
 			// Fetch the player backend.
 			this.player = conn.get_object ("org.washedup.Hum",
 				"/org/washedup/Hum",
 				"org.washedup.Hum");
-			
+
 			this.query_engine = new Hum.QueryEngine ();
 
 			// Construct the window and its child widgets from the UI definition.
 			Gtk.Builder builder = new Gtk.Builder ();
 			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, ui_file);
-	
+
 			try
 			{
 				builder.add_from_file (path);
 			}
-	
 			catch (GLib.Error e)
 			{
-				stderr.printf ("Shit! %s\n", e.message);
+				stderr.printf ("Error loading the interface definition file: %s\n", e.message);
 				quit ();
 			}
-	
+
 			// Assign the widgets to a variable for manipulation later.
 			this.window = (Gtk.Window) builder.get_object ("main_window");
 			this.about_menu_item = (Gtk.ImageMenuItem) builder.get_object ("about_menu_item");
@@ -145,7 +152,7 @@ namespace Hum
 				typeof (string), // track
 				typeof (string), // genre
 				typeof (string));// duration
-	
+
 			// Create the store that will drive the search list.
 			this.search_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
 				typeof (string), // uri
@@ -160,13 +167,13 @@ namespace Hum
 			// Connect the stores to their corresponding views.
 			set_up_list_view (this.playlist_store, this.playlist_view);
 			set_up_list_view (this.search_store, this.search_view);
-	
+
 			// Set the selection mode.
 			this.search_select = this.search_view.get_selection ();
 			this.search_select.set_mode (Gtk.SelectionMode.MULTIPLE);
 			this.playlist_select = this.playlist_view.get_selection ();
 			this.playlist_select.set_mode (Gtk.SelectionMode.SINGLE);
-	
+
 			// Hook up some signals.
 			set_up_signals ();
 
@@ -179,9 +186,15 @@ namespace Hum
 			{
 				for (int i = 1; i < args.length; i++)
 				{
-					string uri = GLib.Filename.to_uri (args[i]);
-
-					this.player.AddTrack (uri, -1);
+					try
+					{
+						string uri = GLib.Filename.to_uri (args[i]);
+						this.player.AddTrack (uri, -1);
+					}
+					catch (GLib.ConvertError e)
+					{
+						critical ("Error converting %s to a URI: %s", args[i], e.message);
+					}
 				}
 
 				this.player.Play (-1);

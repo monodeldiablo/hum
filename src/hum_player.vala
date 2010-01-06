@@ -120,7 +120,7 @@ namespace Hum
 			this.current_track = 0;
 
 			// Initialize GStreamer.
-			Gst.init(ref args);
+			Gst.init (ref args);
 			
 			debug ("GStreamer library initialized.");
 			
@@ -238,30 +238,36 @@ namespace Hum
 		// track at position *position* in the playlist.
 		public void add_track (string uri, int position = -1)
 		{
-			// FIXME: Catch the ConvertError that this throws...
-			string path = GLib.Filename.from_uri (uri);
-			debug ("got a request to add %s", path);
-
-			if (FileUtils.test (path, GLib.FileTest.EXISTS))
+			try
 			{
-				if (position == -1)
+				string path = GLib.Filename.from_uri (uri);
+				debug ("got a request to add %s", uri);
+
+				if (FileUtils.test (path, GLib.FileTest.EXISTS))
 				{
-					position = (int) this.playlist.length ();
-				}
+					if (position == -1)
+					{
+						position = (int) this.playlist.length ();
+					}
 
-				this.playlist.insert (uri, position);
+					this.playlist.insert (uri, position);
 
-				debug ("added '%s' to the playlist at position %d", uri, position);
+					debug ("added '%s' to the playlist at position %d", uri, position);
 			
-				// If we add something ahead of the currently-selected track, its position
-				// changes.
-				if (position <= this.current_track)
-				{
-					this.current_track += 1;
-				}
+					// If we add something ahead of the currently-selected track, its position
+					// changes.
+					if (position <= this.current_track)
+					{
+						this.current_track += 1;
+					}
 
-				// Emit a helpful signal.
-				track_added (uri, position);
+					// Emit a helpful signal.
+					track_added (uri, position);
+				}
+			}
+			catch (GLib.Error e)
+			{
+				critical ("could not add the track '%s' to the playlist at position %d", uri, position);
 			}
 		}
 

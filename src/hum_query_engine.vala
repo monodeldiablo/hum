@@ -50,25 +50,32 @@ namespace Hum
 		construct
 		{
 			debug ("Connecting to Tracker...");
-			conn = DBus.Bus.get (DBus.BusType.SESSION);
-	
-			this.tracker = conn.get_object ("org.freedesktop.Tracker",
-				"/org/freedesktop/Tracker",
-				"org.freedesktop.Tracker");
-			
-			debug ("Connected to Tracker v%d!", tracker.GetVersion ());
+			try
+			{
+				conn = DBus.Bus.get (DBus.BusType.SESSION);
 
-			this.tracker_search = conn.get_object ("org.freedesktop.Tracker",
-				"/org/freedesktop/Tracker/Search",
-				"org.freedesktop.Tracker.Search");
+				this.tracker = conn.get_object ("org.freedesktop.Tracker",
+					"/org/freedesktop/Tracker",
+					"org.freedesktop.Tracker");
 
-			this.tracker_files = conn.get_object ("org.freedesktop.Tracker",
-				"/org/freedesktop/Tracker/Files",
-				"org.freedesktop.Tracker.Files");
+				debug ("Connected to Tracker v%d!", tracker.GetVersion ());
+
+				this.tracker_search = conn.get_object ("org.freedesktop.Tracker",
+					"/org/freedesktop/Tracker/Search",
+					"org.freedesktop.Tracker.Search");
+
+				this.tracker_files = conn.get_object ("org.freedesktop.Tracker",
+					"/org/freedesktop/Tracker/Files",
+					"org.freedesktop.Tracker.Files");
 			
-			this.tracker_metadata = conn.get_object ("org.freedesktop.Tracker",
-				"/org/freedesktop/Tracker/Metadata",
-				"org.freedesktop.Tracker.Metadata");
+				this.tracker_metadata = conn.get_object ("org.freedesktop.Tracker",
+					"/org/freedesktop/Tracker/Metadata",
+					"org.freedesktop.Tracker.Metadata");
+			}
+			catch (DBus.Error e)
+			{
+				critical ("Error connecting to Tracker: %s", e.message);
+			}
 		}
 
 		// This method returns the list of URIs of files that match the given search.

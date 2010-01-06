@@ -54,6 +54,7 @@ namespace Hum
 	public class UserInterface
 	{
 		public Gtk.Window window;
+		public Gtk.AboutDialog about_dialog;
 		public Gtk.ImageMenuItem about_menu_item;
 		public Gtk.Statusbar status_bar;
 		public Gtk.ToolButton play_button;
@@ -78,7 +79,6 @@ namespace Hum
 		private Gtk.TreeIter current_iter;
 		private double current_progress = 0.0;
 
-		private string ui_file = "main.ui";
 		private int update_timeout_id = -1;
 		private int update_period = 500;
 		private int animate_timeout_id = -1;
@@ -111,7 +111,7 @@ namespace Hum
 
 			// Construct the window and its child widgets from the UI definition.
 			Gtk.Builder builder = new Gtk.Builder ();
-			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, ui_file);
+			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "main.ui");
 
 			try
 			{
@@ -425,17 +425,38 @@ namespace Hum
 		// FIXME: Edit the close button to actually close the window.
 		private void show_about_dialog ()
 		{
-			Gtk.AboutDialog about_dialog = new Gtk.AboutDialog ();
+			Gtk.Builder about_ui = new Gtk.Builder ();
+			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "about.ui");
 
-			about_dialog.authors = {"Brian Davis <brian.william.davis@gmail.com"};
-			about_dialog.comments = "the low calorie music manager";
-			about_dialog.copyright = "Copyright © 2007-2009 Brian Davis";
-			about_dialog.logo_icon_name = "audio-x-generic";
-			about_dialog.program_name = "Hum Music Player";
-			about_dialog.version = Config.VERSION;
-			about_dialog.website = "http://github.com/monodeldiablo/hum";
+			try
+			{
+				about_ui.add_from_file (path);
+			}
+			catch (GLib.Error e)
+			{
+				stderr.printf ("Error loading the interface definition file: %s\n", e.message);
+			}
 
-			about_dialog.show_all ();
+			// Assign the widgets to a variable for manipulation later.
+			this.about_dialog = (Gtk.AboutDialog) about_ui.get_object ("about_dialog");
+
+			this.about_dialog.version = Config.VERSION;
+
+			// Hook up the "close" action.
+			this.about_dialog.response += handle_about_dialog_response;
+
+			this.about_dialog.show_all ();
+		}
+
+		private void handle_about_dialog_response (int response_id)
+		{
+			debug ("response_id: %d", response_id);
+
+			// NOTE: Apparently, the response_id for the "Close" button is -6...
+			if (response_id == -6)
+			{
+				this.about_dialog.close ();
+			}
 		}
 
 		private void show_pause_button ()

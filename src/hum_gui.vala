@@ -309,9 +309,6 @@ namespace Hum
 
 				// Set up drag and drop sender capability. Items from here should only be
 				// draggable to the playlist.
-				//view.enable_model_drag_source (Gdk.ModifierType.BUTTON1_MASK,
-				//	{target_list[1]},
-				//	Gdk.DragAction.MOVE);
 				Gtk.drag_source_set (view,
 					Gdk.ModifierType.BUTTON1_MASK,
 					{target_list[1]},
@@ -778,6 +775,9 @@ namespace Hum
 			return true;
 		}
 
+		// Deal with an DND source data request.
+		// FIXME: The data that this method adds to the selection goes missing later
+		//        on, in the method below.
 		public void handle_drag_data_get (Gdk.DragContext context, Gtk.SelectionData selection_data, uint info, uint time)
 		{
 			Gtk.TreeModel model = (Gtk.TreeModel) this.search_store;
@@ -804,6 +804,7 @@ namespace Hum
 			selection_data.set_uris (uris);
 		}
 
+		// Handle a DND drop event.
 		public void handle_drag_data_received (Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint info, uint time)
 		{
 			Gtk.TreePath path;
@@ -822,69 +823,75 @@ namespace Hum
 
 			else
 			{
-				this.playlist_store.append (out iter);
 				playlist_position = -1;
 			}
 
-			if (this.playlist_store.iter_is_valid (iter))
+			debug ("someone dragged something from %s here", selection_data.target.name ());
+
+			// If this was dragged from within the playlist view, treat it as a move.
+			switch (selection_data.target.name ())
 			{
-				debug ("someone dragged something from %s here", selection_data.target.name ());
-				// If this was dragged from within the playlist view, treat it as a move.
-				switch (selection_data.target.name ())
-				{
-					case "OTHER_ROW":
-						Gtk.TreeIter selection;
+				case "OTHER_ROW":
+					Gtk.TreeIter selection;
+					GLib.Value uri;
+
+					this.playlist_select.get_selected (out model, out selection);
+					this.playlist_store.get_value (selection, Columns.URI, out uri);
+					this.player.RemoveTrack (this.playlist_store.get_string_from_iter (selection).to_int ());
+					this.player.AddTrack ((string) uri, playlist_position);
+
+					// Signal that the drag has successfully completed.
+					Gtk.drag_finish (context, true, false, time);
+					break;
+				// FIXME: The URIs that I stuck into selection_data in
+				//        handle_drag_data_get() are missing! Where did they go? No clue.
+				case "SEARCH_RESULT":
+					Gtk.TreeModel search_model = (Gtk.TreeModel) this.search_store;
+					GLib.List<Gtk.TreePath> rows;
+
+					rows = this.search_select.get_selected_rows (out search_model);
+
+					foreach (Gtk.TreePath search_path in rows)
+					{
+						Gtk.TreeIter search_iter;
 						GLib.Value uri;
 
-						this.playlist_select.get_selected (out model, out selection);
-						this.playlist_store.get_value (selection, Columns.URI, out uri);
-						this.player.RemoveTrack (this.playlist_store.get_string_from_iter (selection).to_int ());
+						this.search_store.get_iter (out search_iter, search_path);
+						this.search_store.get_value (search_iter, Columns.URI, out uri);
 						this.player.AddTrack ((string) uri, playlist_position);
-						break;
-					// FIXME: The URIs that I stuck into selection_data in
-					//        handle_drag_data_get() are missing! Where did they go? No clue.
-					case "SEARCH_RESULT":
-						Gtk.TreeModel search_model = (Gtk.TreeModel) this.search_store;
-						GLib.List<Gtk.TreePath> rows;
+					}
 
-						rows = this.search_select.get_selected_rows (out search_model);
+					Gtk.drag_finish (context, true, true, time);
+					break;
+				case "text/uri-list":
+					string[] uris = selection_data.get_uris ();
 
-						foreach (Gtk.TreePath path in rows)
-						{
-							Gtk.TreeIter search_iter;
-							GLib.Value uri;
-
-							this.search_store.get_iter (out search_iter, path);
-							this.search_store.get_value (search_iter, Columns.URI, out uri);
-							this.player.AddTrack ((string) uri, playlist_position);
-						}
-						break;
-					case "text/uri-list":
-						string[] uris = selection_data.get_uris ();
-
-						foreach (string uri in uris)
-						{
-							this.player.AddTrack (uri, playlist_position);
-						}
-						break;
-					case "STRING":
-					case "text/plain":
-						string uri = (string) selection_data.data;
-
-						// NOTE: Dragging from the desktop appends a newline to the end of the
-						//       uri, which confuses the method AddTrack method.
-						uri = uri.strip ();
-
-						debug ("adding '%s' to the playlist at position %d", uri, playlist_position);
+					foreach (string uri in uris)
+					{
 						this.player.AddTrack (uri, playlist_position);
-						break;
-					default:
-						debug ("Hum doesn't know how to handle data from that source!");
-						break;
-				}
-				
-				// Signal that the drag has successfully completed.
-				Gtk.drag_finish (context, true, false, time);
+					}
+
+					Gtk.drag_finish (context, true, true, time);
+					break;
+				case "STRING":
+				case "text/plain":
+					string uri = (string) selection_data.data;
+
+					// NOTE: Dragging from the desktop appends a newline to the end of the
+					//       uri, which confuses the method AddTrack method.
+					uri = uri.strip ();
+
+					debug ("adding '%s' to the playlist at position %d", uri, playlist_position);
+					this.player.AddTrack (uri, playlist_position);
+
+					Gtk.drag_finish (context, true, true, time);
+					break;
+				default:
+					debug ("Hum doesn't know how to handle data from that source!");
+
+					// Signal that the drag has unsuccessfully completed.
+					Gtk.drag_finish (context, false, true, time);
+					break;
 			}
 		}
 

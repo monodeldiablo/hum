@@ -158,9 +158,22 @@ namespace Hum
 
 				track.title = metadata[0];
 				track.track_number = metadata[1].to_int ();
-				track.genre = metadata[2];
-				track.artist = metadata[3];
-				track.album = metadata[4];
+
+				if (metadata[2] != "")
+				{
+					track.genre = metadata[2];
+				}
+
+				if (metadata[3] != "")
+				{
+					track.artist = metadata[3];
+				}
+
+				if (metadata[4] != "")
+				{
+					track.album = metadata[4];
+				}
+
 				track.release_date = metadata[5];
 				track.duration = metadata[6].to_int64 () * useconds_in_second;
 			}

@@ -47,8 +47,8 @@ namespace Hum
 			this.title = GLib.Filename.display_basename (uri);
 			this.track_number = 0;
 			this.genre = "";
-			this.artist = "";
-			this.album = "";
+			this.artist = "Unknown Artist";
+			this.album = "Unknown Album";
 			this.duration = 0;
 		}
 	}

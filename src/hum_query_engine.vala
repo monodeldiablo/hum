@@ -158,11 +158,7 @@ namespace Hum
 
 				track.title = metadata[0];
 				track.track_number = metadata[1].to_int ();
-
-				if (metadata[2] != "")
-				{
-					track.genre = metadata[2];
-				}
+				track.genre = metadata[2];
 
 				if (metadata[3] != "")
 				{

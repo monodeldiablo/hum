@@ -7,13 +7,13 @@ v0.3
 * figure out right-click behavior
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits
-    into hum_gui_common.vala
-  * extract the about dialog into hum_gui_about.vala
+    into hum_gtk_common.vala
+  * extract the about dialog into hum_gtk_about.vala
   * extract the search/playlist view setup (including drag/drop &
-    [add,remove]_track_[to,from]_view ()) into hum_gui_views.vala
-  * extract the signal connection into hum_gui_signals.vala
+    [add,remove]_track_[to,from]_view ()) into hum_gtk_views.vala
+  * extract the signal connection into hum_gtk_signals.vala
   * tie it all together (with UI instantiation, UI setup, quit(), and DBus
-    signal handling for hum-gtk), in hum_gui.vala
+    signal handling for hum-gtk), in hum_gtk.vala
 * clean up/simplify/condense the signal & callback code
 * clean up HumQueryEngine and apply some sanity to its methods and design
 * more thoroughly comment all the code

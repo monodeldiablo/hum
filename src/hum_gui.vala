@@ -380,6 +380,7 @@ namespace Hum
 			this.player.ShuffleToggled += handle_shuffle_toggled;
 			this.player.TrackAdded += handle_track_added;
 			this.player.TrackRemoved += handle_track_removed;
+			this.player.Exiting += quit;
 		}
 
 		// Bring the interface up to date with the back end.

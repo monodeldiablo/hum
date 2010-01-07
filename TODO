@@ -1,7 +1,6 @@
 v0.3
 ----
 
-* fix clients killing the backend while other clients are connected
 * ensure all strings are UTF8
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits

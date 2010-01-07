@@ -103,6 +103,9 @@ namespace Hum
 		// Indicates that the shuffle setting has been changed to *do_shuffle*.
 		public signal void shuffle_toggled (bool do_shuffle);
 
+		// Indicates that a client has requested that the back end shut down.
+		public signal void exiting ();
+
 		/************
 		* OPERATION *
 		************/
@@ -156,10 +159,18 @@ namespace Hum
 		{
 			debug ("Quitting...");
 
+			// Stop playback (clients that are playing sometimes ignore the "exiting"
+			// signal for some silly reason).
+			stop ();
+
+			// Let clients and listeners know that we're going bye bye.
+			exiting ();
+
+			// Reset the GStreamer pipeline to avoid memory issues.
 			this.pipeline.set_state (Gst.State.NULL);
 			
+			// Actually, finally, really go away.
 			debug ("Goodbye!");
-
 			this.mainloop.quit ();
 		}
 

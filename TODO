@@ -2,18 +2,6 @@ v0.3
 ----
 
 * ensure all strings are UTF8
-* more effectively organize the code
-  * stick the UI definition, manager, action groups, and instantiation bits
-    into hum_gtk_common.vala
-  * extract the about dialog into hum_gtk_about.vala
-  * extract the search/playlist view setup (including drag/drop &
-    [add,remove]_track_[to,from]_view ()) into hum_gtk_views.vala
-  * extract the signal connection into hum_gtk_signals.vala
-  * tie it all together (with UI instantiation, UI setup, quit(), and DBus
-    signal handling for hum-gtk), in hum_gtk.vala
-* clean up/simplify/condense the signal & callback code
-* clean up HumQueryEngine and apply some sanity to its methods and design
-* more thoroughly comment all the code
 
 v0.4
 ----
@@ -30,6 +18,18 @@ v0.4
 * implement tooltips over view cells, so that users can see full titles, etc.
 * implement a "properties" dialog for selected tracks
 * this interface should allow for tagging and rating tracks
+* more effectively organize the code
+  * stick the UI definition, manager, action groups, and instantiation bits
+    into hum_gtk_common.vala
+  * extract the about dialog into hum_gtk_about.vala
+  * extract the search/playlist view setup (including drag/drop &
+    [add,remove]_track_[to,from]_view ()) into hum_gtk_views.vala
+  * extract the signal connection into hum_gtk_signals.vala
+  * tie it all together (with UI instantiation, UI setup, quit(), and DBus
+    signal handling for hum-gtk), in hum_gtk.vala
+* clean up/simplify/condense the signal & callback code
+* clean up HumQueryEngine and apply some sanity to its methods and design
+* more thoroughly comment all the code
 
 v0.5
 ----

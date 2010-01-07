@@ -2,9 +2,7 @@ v0.3
 ----
 
 * fix clients killing the backend while other clients are connected
-* fix the seek issue, where the UI is sometimes not updated after a seek
 * ensure all strings are UTF8
-* figure out right-click behavior
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits
     into hum_gtk_common.vala
@@ -22,6 +20,7 @@ v0.4
 ----
 
 * register hum-gtk to be the default handler for audio mime types
+* figure out right-click behavior
 * implement playlist clearing (probably best through a menu)
 * implement playlist loading and saving
 * provide a red flash or some other feedback in the background of the search

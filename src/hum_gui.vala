@@ -666,7 +666,22 @@ namespace Hum
 
 			else
 			{
-				return false;
+				debug ("Got %s for the player's state", status);
+
+				// NOTE: Sometimes, I don't know why, but when seeking a track, GStreamer
+				//       reports the state as "PAUSED". This can cause the UI to get stuck,
+				//       as if it's paused, even though the track keeps playing.
+				GLib.Thread.usleep(50);
+				status = this.player.GetPlaybackStatus ();
+
+				if (status == "PLAYING")
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 		}
 

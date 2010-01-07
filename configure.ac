@@ -1,4 +1,4 @@
-AC_INIT([Hum: The low calorie music manager], [0.2.1], [brian.william.davis@gmail.com], [hum], [http://github.com/monodeldiablo/hum])
+AC_INIT([Hum: The low calorie music manager], [0.2.9], [brian.william.davis@gmail.com], [hum], [http://github.com/monodeldiablo/hum])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([dist-bzip2])

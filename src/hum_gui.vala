@@ -447,8 +447,6 @@ namespace Hum
 
 		private void handle_about_dialog_response (int response_id)
 		{
-			debug ("response_id: %d", response_id);
-
 			// NOTE: Apparently, the response_id for the "Close" button is -6...
 			if (response_id == -6)
 			{
@@ -830,7 +828,7 @@ namespace Hum
 				this.search_store.get_iter (out iter, path);
 				this.search_store.get_value (iter, Columns.URI, out text);
 				uris[i] = (string) text;
-				debug ("setting selection_data to %s", uris[i]);
+				debug ("Setting selection_data to %s", uris[i]);
 
 				++i;
 			}
@@ -860,7 +858,7 @@ namespace Hum
 				playlist_position = -1;
 			}
 
-			debug ("someone dragged something from %s here", selection_data.target.name ());
+			debug ("An item was dragged from %s", selection_data.target.name ());
 
 			// If this was dragged from within the playlist view, treat it as a move.
 			switch (selection_data.target.name ())
@@ -915,7 +913,7 @@ namespace Hum
 					//       uri, which confuses the method AddTrack method.
 					uri = uri.strip ();
 
-					debug ("adding '%s' to the playlist at position %d", uri, playlist_position);
+					debug ("Adding '%s' to the playlist at position %d", uri, playlist_position);
 					this.player.AddTrack (uri, playlist_position);
 
 					Gtk.drag_finish (context, true, true, time);

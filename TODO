@@ -2,7 +2,7 @@ v0.3
 ----
 
 * fix clients killing the backend while other clients are connected
-* fix the case where, after delete, pressing the down or up keys crashes Hum
+* fix the seek issue, where the UI is sometimes not updated after a seek
 * ensure all strings are UTF8
 * figure out right-click behavior
 * more effectively organize the code

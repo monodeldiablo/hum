@@ -628,8 +628,16 @@ namespace Hum
 			Gtk.TreeIter iter;
 			
 			this.playlist_store.get_iter (out iter, new Gtk.TreePath.from_indices (position, -1));
+			string iter_str = this.playlist_store.get_string_from_iter (iter);
+			string current_str = this.playlist_store.get_string_from_iter (current_iter);
 
 			store.remove (iter);
+
+			// Reset the "current_iter" pointer.
+			if (iter_str == current_str)
+			{
+				this.playlist_store.get_iter_first (out this.current_iter);
+			}
 		}
 
 		private void set_track_position (int64 usec)
@@ -731,20 +739,31 @@ namespace Hum
 		{
 			Gtk.TreeIter selection;
 			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
+			int position = -1;
 			
 			this.playlist_select.get_selected (out model, out selection);
-			int position = this.playlist_store.get_path (selection).to_string ().to_int ();
+
+			if (this.playlist_store.iter_is_valid (selection))
+			{
+				position = this.playlist_store.get_path (selection).to_string ().to_int ();
+			}
 
 			switch (event.hardware_keycode)
 			{
 				// "delete" was pressed
 				case 119:
-					this.player.RemoveTrack (position);
+					if (position >= 0)
+					{
+						this.player.RemoveTrack (position);
+					}
 					break;
 
 				// "enter" was pressed
 				case 36:
-					this.player.Play (position);
+					if (position >= 0)
+					{
+						this.player.Play (position);
+					}
 					break;
 
 				// "space" was pressed
@@ -764,6 +783,11 @@ namespace Hum
 				// "up" or "p" was pressed
 				case 111:
 				case 33:
+					if (position < 0)
+					{
+						position = 0;
+					}
+
 					int new_position = (position - 1) % this.playlist_store.length;
 					Gtk.TreePath new_path = new Gtk.TreePath.from_indices (new_position, -1);
 					this.playlist_select.select_path (new_path);

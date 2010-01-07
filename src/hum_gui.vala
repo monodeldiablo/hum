@@ -474,7 +474,12 @@ namespace Hum
 			
 			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s".printf(track.artist, track.title);
-			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
+
+			string title_markup = GLib.Markup.escape_text (track.title);
+			string artist_markup = GLib.Markup.escape_text (track.artist);
+			string album_markup = GLib.Markup.escape_text (track.album);
+
+			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(title_markup, artist_markup, album_markup));
 
 			// Set the 'playing' icon in the row of the track that's playing.
 			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
@@ -512,7 +517,12 @@ namespace Hum
 
 			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s (paused)".printf(track.artist, track.title);
-			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(track.title, track.artist, track.album));
+
+			string title_markup = GLib.Markup.escape_text (track.title);
+			string artist_markup = GLib.Markup.escape_text (track.artist);
+			string album_markup = GLib.Markup.escape_text (track.album);
+
+			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(title_markup, artist_markup, album_markup));
 			this.progress_slider.set_range (0.0, (float) track.duration);
 			update_track_progress ();
 			

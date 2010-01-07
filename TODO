@@ -4,7 +4,6 @@ v0.3
 * fix clients killing the backend while other clients are connected
 * fix the case where, after delete, pressing the down or up keys crashes Hum
 * ensure all strings are UTF8
-* fix entity escaping for the UI
 * figure out right-click behavior
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits

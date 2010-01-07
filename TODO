@@ -1,6 +1,7 @@
 v0.4
 ----
 
+* fix the search pane so that it doesn't jiggle when only one result comes back
 * register hum-gtk to be the default handler for audio mime types
 * figure out right-click behavior
 * implement playlist clearing (probably best through a menu)

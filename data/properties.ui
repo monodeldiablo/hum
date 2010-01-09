@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkDialog" id="properties_dialog">
+    <property name="border_width">5</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-always</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="icon_name">audio-x-generic</property>
+    <property name="type_hint">dialog</property>
+    <property name="has_separator">False</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox1">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkTable" id="table1">
+            <property name="visible">True</property>
+            <property name="n_rows">10</property>
+            <property name="n_columns">2</property>
+            <property name="column_spacing">5</property>
+            <child>
+              <object class="GtkLabel" id="title_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Title:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="artist_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Artist:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="album_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Album:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="genre_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Genre:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="track_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Track number:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="release_date_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Release date:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">5</property>
+                <property name="bottom_attach">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="duration_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Duration:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">6</property>
+                <property name="bottom_attach">7</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="bitrate_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Bitrate:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">7</property>
+                <property name="bottom_attach">8</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="file_size_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;File size:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">8</property>
+                <property name="bottom_attach">9</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="location_label">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;b&gt;Location:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">9</property>
+                <property name="bottom_attach">10</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="title_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="artist_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="album_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="genre_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="track_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="release_date_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">5</property>
+                <property name="bottom_attach">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="duration_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">6</property>
+                <property name="bottom_attach">7</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="bitrate_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">7</property>
+                <property name="bottom_attach">8</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="file_size_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">8</property>
+                <property name="bottom_attach">9</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="location_value">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">9</property>
+                <property name="bottom_attach">10</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="close_button">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">close_action</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">close_button</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkAction" id="close_action">
+    <property name="label">Close</property>
+    <property name="short_label">Close</property>
+    <property name="stock_id">gtk-close</property>
+  </object>
+</interface>

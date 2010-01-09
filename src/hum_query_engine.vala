@@ -41,9 +41,9 @@ namespace Hum
 			"Audio:Artist",
 			"Audio:Album",
 			"Audio:ReleaseDate",
-			"Audio:Duration"};//,
-			//"File:Size",
-			//"Audio:Bitrate",
+			"Audio:Duration",
+			"Audio:Bitrate",
+			"File:Size"};//,
 			//"Audio:Codec",
 			//"DC:Keywords"};
 		
@@ -172,10 +172,12 @@ namespace Hum
 
 				track.release_date = metadata[5];
 				track.duration = metadata[6].to_int64 () * useconds_in_second;
+				track.bitrate = metadata[7];
+				track.file_size = metadata[8];
 			}
 			catch (GLib.Error e)
 			{
-				critical ("Error while converting \"%s\" to a path: %s", uri, e.message);
+				critical ("Error while converting '%s' to a path: %s", uri, e.message);
 			}
 
 			return track;

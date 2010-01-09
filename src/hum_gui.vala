@@ -31,9 +31,9 @@
 
 // FIXME: Use TreeView.get_visible_range () to minimize the number of items in the search box.
 
+using Config;
 using GLib;
 using Gtk;
-using Config;
 using DBus;
 
 namespace Hum
@@ -47,15 +47,26 @@ namespace Hum
 		ALBUM,
 		TRACK,
 		GENRE,
+		RELEASE_DATE,
 		DURATION,
+		BITRATE,
+		FILE_SIZE,
 		NUM_COLUMNS
 	}
 
 	public class UserInterface
 	{
+		/* Actions */
+
+		public Gtk.Action quit_action;
+		public Gtk.Action about_action;
+		public Gtk.Action properties_action;
+
+		/* Widgets */
+
 		public Gtk.Window window;
 		public Gtk.AboutDialog about_dialog;
-		public Gtk.ImageMenuItem about_menu_item;
+		public Gtk.Dialog properties_dialog;
 		public Gtk.Statusbar status_bar;
 		public Gtk.ToolButton play_button;
 		public Gtk.ToolButton pause_button;
@@ -85,7 +96,7 @@ namespace Hum
 		private int animate_period = 100;
 		private int animate_increment = 20;
 		private int search_results_height = 100;
-		
+
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
 		private Hum.QueryEngine query_engine;
@@ -123,9 +134,13 @@ namespace Hum
 				quit ();
 			}
 
+			// Assign actions to variables for signal handling.
+			this.quit_action = (Gtk.Action) builder.get_object ("quit_action");
+			this.about_action = (Gtk.Action) builder.get_object ("about_action");
+			this.properties_action = (Gtk.Action) builder.get_object ("properties_action");
+
 			// Assign the widgets to a variable for manipulation later.
 			this.window = (Gtk.Window) builder.get_object ("main_window");
-			this.about_menu_item = (Gtk.ImageMenuItem) builder.get_object ("about_menu_item");
 			this.status_bar = (Gtk.Statusbar) builder.get_object ("status_bar");
 			this.play_button = (Gtk.ToolButton) builder.get_object ("play_button");
 			this.pause_button = (Gtk.ToolButton) builder.get_object ("pause_button");
@@ -151,7 +166,10 @@ namespace Hum
 				typeof (string), // album
 				typeof (string), // track
 				typeof (string), // genre
-				typeof (string));// duration
+				typeof (string), // release_date
+				typeof (string), // duration
+				typeof (string), // bitrate
+				typeof (string));// file size
 
 			// Create the store that will drive the search list.
 			this.search_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
@@ -162,7 +180,10 @@ namespace Hum
 				typeof (string), // album
 				typeof (string), // track
 				typeof (string), // genre
-				typeof (string));// duration
+				typeof (string), // release_date
+				typeof (string), // duration
+				typeof (string), // bitrate
+				typeof (string));// file size
 
 			// Connect the stores to their corresponding views.
 			set_up_list_view (this.playlist_store, this.playlist_view);
@@ -229,20 +250,32 @@ namespace Hum
 			Gtk.TreeViewColumn album;
 			Gtk.TreeViewColumn track;
 			Gtk.TreeViewColumn genre;
+			Gtk.TreeViewColumn release_date;
 			Gtk.TreeViewColumn duration;
+			Gtk.TreeViewColumn bitrate;
+			Gtk.TreeViewColumn file_size;
 			Gtk.Image status_or_add_to_playlist_header;
-	
-			uri = new Gtk.TreeViewColumn.with_attributes ("URI", new Gtk.CellRendererText (), "text", Columns.URI);
+
+			Gtk.CellRendererText renderer = new Gtk.CellRendererText ();
+			renderer.ellipsize = Pango.EllipsizeMode.END;
+
+			uri = new Gtk.TreeViewColumn.with_attributes ("URI", renderer, "text", Columns.URI);
 			status_or_add_to_playlist = new Gtk.TreeViewColumn.with_attributes ("", new Gtk.CellRendererPixbuf (), "stock-id", Columns.STATUS_OR_ADD_TO_PLAYLIST);
-			title = new Gtk.TreeViewColumn.with_attributes ("Title", new Gtk.CellRendererText (), "text", Columns.TITLE);
-			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", new Gtk.CellRendererText (), "text", Columns.ARTIST);
-			album = new Gtk.TreeViewColumn.with_attributes ("Album", new Gtk.CellRendererText (), "text", Columns.ALBUM);
-			track = new Gtk.TreeViewColumn.with_attributes ("#", new Gtk.CellRendererText (), "text", Columns.TRACK);
-			genre = new Gtk.TreeViewColumn.with_attributes ("Genre", new Gtk.CellRendererText (), "text", Columns.GENRE);
-			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", new Gtk.CellRendererText (), "text", Columns.DURATION);
+			title = new Gtk.TreeViewColumn.with_attributes ("Title", renderer, "text", Columns.TITLE);
+			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", renderer, "text", Columns.ARTIST);
+			album = new Gtk.TreeViewColumn.with_attributes ("Album", renderer, "text", Columns.ALBUM);
+			track = new Gtk.TreeViewColumn.with_attributes ("#", renderer, "text", Columns.TRACK);
+			genre = new Gtk.TreeViewColumn.with_attributes ("Genre", renderer, "text", Columns.GENRE);
+			release_date = new Gtk.TreeViewColumn.with_attributes ("Release Date", renderer, "text", Columns.RELEASE_DATE);
+			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", renderer, "text", Columns.DURATION);
+			bitrate = new Gtk.TreeViewColumn.with_attributes ("Bitrate", renderer, "text", Columns.BITRATE);
+			file_size = new Gtk.TreeViewColumn.with_attributes ("File Size", renderer, "text", Columns.FILE_SIZE);
 	
-			// Hide the URI column.
+			// Hide the columns we don't need to show to the user.
 			uri.set_visible (false);
+			release_date.set_visible (false);
+			bitrate.set_visible (false);
+			file_size.set_visible (false);
 	
 			// Set up the sizing parameters for each column.
 			status_or_add_to_playlist.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
@@ -342,7 +375,10 @@ namespace Hum
 			view.append_column (album);
 			view.append_column (track);
 			view.append_column (genre);
+			view.append_column (release_date);
 			view.append_column (duration);
+			view.append_column (bitrate);
+			view.append_column (file_size);
 		}
 
 		// Connect a bunch of signals to their handlers.
@@ -350,8 +386,10 @@ namespace Hum
 		{
 			// If the window is closed, what's the point?
 			this.window.destroy += quit;
+			this.quit_action.activate += quit;
 
-			this.about_menu_item.activate += show_about_dialog;
+			this.about_action.activate += show_about_dialog;
+			this.properties_action.activate += show_properties_dialog;
 
 			this.play_button.clicked += handle_play_clicked;
 			this.pause_button.clicked += handle_pause_clicked;
@@ -420,7 +458,100 @@ namespace Hum
 			this.shuffle_button.active = shuffle_toggled;
 		}
 
-		// FIXME: Edit the close button to actually close the window.
+		private void show_properties_dialog ()
+		{
+			Gtk.Builder properties_ui = new Gtk.Builder ();
+			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "properties.ui");
+
+			try
+			{
+				properties_ui.add_from_file (path);
+			}
+			catch (GLib.Error e)
+			{
+				stderr.printf ("Error loading the interface definition file: %s\n", e.message);
+			}
+
+			// Assign the widgets to a variable for manipulation later.
+			this.properties_dialog = (Gtk.Dialog) properties_ui.get_object ("properties_dialog");
+			Gtk.Action close_action = (Gtk.Action) properties_ui.get_object ("close_action");
+
+			Gtk.Label title_value = (Gtk.Label) properties_ui.get_object ("title_value");
+			Gtk.Label artist_value = (Gtk.Label) properties_ui.get_object ("artist_value");
+			Gtk.Label album_value = (Gtk.Label) properties_ui.get_object ("album_value");
+			Gtk.Label genre_value = (Gtk.Label) properties_ui.get_object ("genre_value");
+			Gtk.Label track_value = (Gtk.Label) properties_ui.get_object ("track_value");
+			Gtk.Label release_date_value = (Gtk.Label) properties_ui.get_object ("release_date_value");
+			Gtk.Label duration_value = (Gtk.Label) properties_ui.get_object ("duration_value");
+			Gtk.Label bitrate_value = (Gtk.Label) properties_ui.get_object ("bitrate_value");
+			Gtk.Label file_size_value = (Gtk.Label) properties_ui.get_object ("file_size_value");
+			Gtk.Label location_value = (Gtk.Label) properties_ui.get_object ("location_value");
+
+			// Fill in the track metadata.
+			Gtk.TreeIter selection;
+			Gtk.TreeModel model;
+			bool is_selected = this.playlist_select.get_selected (out model, out selection);
+			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
+
+			if (is_selected && selection_is_valid)
+			{
+				GLib.Value uri;
+				GLib.Value title;
+				GLib.Value artist;
+				GLib.Value album;
+				GLib.Value genre;
+				GLib.Value track;
+				GLib.Value release_date;
+				GLib.Value duration;
+				GLib.Value bitrate;
+				GLib.Value file_size;
+
+				this.playlist_store.get_value (selection, Columns.URI, out uri);
+				this.playlist_store.get_value (selection, Columns.TITLE, out title);
+				this.playlist_store.get_value (selection, Columns.ARTIST, out artist);
+				this.playlist_store.get_value (selection, Columns.ALBUM, out album);
+				this.playlist_store.get_value (selection, Columns.GENRE, out genre);
+				this.playlist_store.get_value (selection, Columns.TRACK, out track);
+				this.playlist_store.get_value (selection, Columns.RELEASE_DATE, out release_date);
+				this.playlist_store.get_value (selection, Columns.DURATION, out duration);
+				this.playlist_store.get_value (selection, Columns.BITRATE, out bitrate);
+				this.playlist_store.get_value (selection, Columns.FILE_SIZE, out file_size);
+
+				title_value.set_text ((string) title);
+				artist_value.set_text ((string) artist);
+				album_value.set_text ((string) album);
+				genre_value.set_text ((string) genre);
+				track_value.set_text ((string) track);
+				release_date_value.set_text ((string) release_date);
+				duration_value.set_text ((string) duration);
+				bitrate_value.set_text ((string) bitrate);
+				file_size_value.set_text ((string) file_size);
+
+				try
+				{
+					location_value.set_text (GLib.Filename.from_uri ((string) uri));
+				}
+				catch (GLib.Error e)
+				{
+					location_value.set_text ("unknown");
+
+					critical ("Error while converting '%s' to a path: %s", (string) uri, e.message);
+				}
+
+				this.properties_dialog.set_title ("%s Properties".printf ((string) title));
+			}
+
+			// Hook up the "close" action.
+			close_action.activate += close_properties_dialog;
+
+			this.properties_dialog.show_all ();
+		}
+
+		private void close_properties_dialog ()
+		{
+			this.properties_dialog.close ();
+		}
+
 		private void show_about_dialog ()
 		{
 			Gtk.Builder about_ui = new Gtk.Builder ();
@@ -618,7 +749,10 @@ namespace Hum
 				Columns.ALBUM, track.album,
 				Columns.TRACK, track.track_number.to_string (),
 				Columns.GENRE, track.genre,
+				Columns.RELEASE_DATE, Time.gm ((time_t) track.release_date.to_int ()).year.to_string (),
 				Columns.DURATION, usec_to_string (track.duration),
+				Columns.BITRATE, "%d kbps".printf (track.bitrate.to_int () / 1000),
+				Columns.FILE_SIZE, "%0.2f MB".printf ((track.file_size.to_int ()) / (1024.0 * 1024.0)),
 				-1);
 		}
 

@@ -32,7 +32,9 @@ namespace Hum
 		public int track_number { get; set; }
 		public string release_date { get; set; }
 		public string genre { get; set; }
-		public string codec { get; set; }
+		public string bitrate { get; set; }
+		public string file_size { get; set; }
+		//public string codec { get; set; }
 		
 		// The track length is in nanoseconds.
 		public int64 duration { get; set; }
@@ -49,7 +51,10 @@ namespace Hum
 			this.genre = "";
 			this.artist = "Unknown Artist";
 			this.album = "Unknown Album";
+			this.release_date = "";
 			this.duration = 0;
+			this.bitrate = "";
+			this.file_size = "";
 		}
 	}
 }

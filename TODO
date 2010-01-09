@@ -2,18 +2,25 @@ v0.4
 ----
 
 * fix the search pane so that it doesn't jiggle when only one result comes back
+  (see below for a solution)
+* only expand the search pane for as many results as there are, up to 5
+* fix DND of multiple items from the desktop
+* fix seeking w/one click
+* define Actions and ActionGroups to simplify the UI code (ex: a close_window
+  action defined in main.ui can be referred to by all the various means of
+  closing the window, and only dealt with once in code)
+* figure out right-click behavior (probably a subset of the application menu)
 * register hum-gtk to be the default handler for audio mime types
-* figure out right-click behavior
 * implement playlist clearing (probably best through a menu)
 * implement playlist loading and saving
 * provide a red flash or some other feedback in the background of the search
   entry if no results
 * provide search progress feedback in the background of the search entry
-* only expand the search pane for as many results as there are, up to 5
 * implement add icon on search result hover
 * implement tooltips over view cells, so that users can see full titles, etc.
+* implement pinstriping for the views
 * implement a "properties" dialog for selected tracks
-* this interface should allow for tagging and rating tracks
+* the properties dialog should allow for tagging and rating tracks
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits
     into hum_gtk_common.vala

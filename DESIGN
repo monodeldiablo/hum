@@ -50,8 +50,8 @@ In order to meet these goals, and to make Hum fun and easy to hack on later,
 some design considerations should be met:
 
 	* Wherever possible, obviously compartmentalized code should be separated into
-	  another, well-documented file. If the code is easy to well-structured and
-	  easy to read, it's doubly hackable and more amenable to bug fixing.
+	  another, well-documented file. If the code is well-structured and easy to
+	  read, it's doubly hackable and more amenable to bug fixing.
 
 	* If another service or application or code base does something close to what
 	  Hum wants, it will be used in lieu of reinventing the wheel for a silly

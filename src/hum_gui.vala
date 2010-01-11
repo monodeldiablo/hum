@@ -103,6 +103,8 @@ namespace Hum
 		public Gtk.TreeView playlist_view;
 		public Gtk.ListStore search_store;
 		public Gtk.ListStore playlist_store;
+		public Gtk.CellRendererText text_renderer;
+		public Gtk.CellRendererPixbuf pixbuf_renderer;
 		public Gtk.TreeSelection search_select;
 		public Gtk.TreeSelection playlist_select;
 
@@ -191,36 +193,13 @@ namespace Hum
 			this.search_entry = (Gtk.Entry) builder.get_object ("search_entry");
 			this.search_button = (Gtk.Button) builder.get_object ("search_button");
 			this.view_separator = (Gtk.VPaned) builder.get_object ("view_separator");
+
+			this.playlist_store = (Gtk.ListStore) builder.get_object ("playlist_store");
+			this.search_store = (Gtk.ListStore) builder.get_object ("search_store");
 			this.playlist_view = (Gtk.TreeView) builder.get_object ("playlist_view");
 			this.search_view = (Gtk.TreeView) builder.get_object ("search_view");
-
-			// Create the store that will drive the track list.
-			this.playlist_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
-				typeof (string), // uri
-				typeof (string), // status
-				typeof (string), // title
-				typeof (string), // artist
-				typeof (string), // album
-				typeof (string), // track
-				typeof (string), // genre
-				typeof (string), // release_date
-				typeof (string), // duration
-				typeof (string), // bitrate
-				typeof (string));// file size
-
-			// Create the store that will drive the search list.
-			this.search_store = new Gtk.ListStore (Columns.NUM_COLUMNS,
-				typeof (string), // uri
-				typeof (string), // add_to_playlist
-				typeof (string), // title
-				typeof (string), // artist
-				typeof (string), // album
-				typeof (string), // track
-				typeof (string), // genre
-				typeof (string), // release_date
-				typeof (string), // duration
-				typeof (string), // bitrate
-				typeof (string));// file size
+			this.text_renderer = (Gtk.CellRendererText) builder.get_object ("text_renderer");
+			this.pixbuf_renderer = (Gtk.CellRendererPixbuf) builder.get_object ("pixbuf_renderer");
 
 			// Connect the stores to their corresponding views.
 			set_up_list_view (this.playlist_store, this.playlist_view);
@@ -386,7 +365,7 @@ namespace Hum
 			}
 	
 			// Attach the store to the track list.
-			view.set_model (store);
+			//view.set_model (store);
 	
 			// Set up the display columns.
 			Gtk.TreeViewColumn uri;
@@ -402,35 +381,39 @@ namespace Hum
 			Gtk.TreeViewColumn file_size;
 			Gtk.Image status_or_add_to_playlist_header;
 
-			Gtk.CellRendererText renderer = new Gtk.CellRendererText ();
-			renderer.ellipsize = Pango.EllipsizeMode.END;
+			//Gtk.CellRendererText renderer = new Gtk.CellRendererText ();
+			//renderer.ellipsize = Pango.EllipsizeMode.END;
 
-			uri = new Gtk.TreeViewColumn.with_attributes ("URI", renderer, "text", Columns.URI);
-			status_or_add_to_playlist = new Gtk.TreeViewColumn.with_attributes ("", new Gtk.CellRendererPixbuf (), "stock-id", Columns.STATUS_OR_ADD_TO_PLAYLIST);
-			title = new Gtk.TreeViewColumn.with_attributes ("Title", renderer, "text", Columns.TITLE);
-			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", renderer, "text", Columns.ARTIST);
-			album = new Gtk.TreeViewColumn.with_attributes ("Album", renderer, "text", Columns.ALBUM);
-			track = new Gtk.TreeViewColumn.with_attributes ("#", renderer, "text", Columns.TRACK);
-			genre = new Gtk.TreeViewColumn.with_attributes ("Genre", renderer, "text", Columns.GENRE);
-			release_date = new Gtk.TreeViewColumn.with_attributes ("Release Date", renderer, "text", Columns.RELEASE_DATE);
-			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", renderer, "text", Columns.DURATION);
-			bitrate = new Gtk.TreeViewColumn.with_attributes ("Bitrate", renderer, "text", Columns.BITRATE);
-			file_size = new Gtk.TreeViewColumn.with_attributes ("File Size", renderer, "text", Columns.FILE_SIZE);
+			uri = new Gtk.TreeViewColumn.with_attributes ("URI", text_renderer, "text", Columns.URI);
+			status_or_add_to_playlist = new Gtk.TreeViewColumn.with_attributes ("", pixbuf_renderer, "stock-id", Columns.STATUS_OR_ADD_TO_PLAYLIST);
+			title = new Gtk.TreeViewColumn.with_attributes ("Title", text_renderer, "text", Columns.TITLE);
+			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", text_renderer, "text", Columns.ARTIST);
+			album = new Gtk.TreeViewColumn.with_attributes ("Album", text_renderer, "text", Columns.ALBUM);
+			track = new Gtk.TreeViewColumn.with_attributes ("#", text_renderer, "text", Columns.TRACK);
+			genre = new Gtk.TreeViewColumn.with_attributes ("Genre", text_renderer, "text", Columns.GENRE);
+			release_date = new Gtk.TreeViewColumn.with_attributes ("Release Date", text_renderer, "text", Columns.RELEASE_DATE);
+			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", text_renderer, "text", Columns.DURATION);
+			bitrate = new Gtk.TreeViewColumn.with_attributes ("Bitrate", text_renderer, "text", Columns.BITRATE);
+			file_size = new Gtk.TreeViewColumn.with_attributes ("File Size", text_renderer, "text", Columns.FILE_SIZE);
 	
 			// Hide the columns we don't need to show to the user.
 			uri.set_visible (false);
 			release_date.set_visible (false);
 			bitrate.set_visible (false);
 			file_size.set_visible (false);
-	
+
 			// Set up the sizing parameters for each column.
+			uri.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			status_or_add_to_playlist.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			title.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			artist.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			album.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			track.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			genre.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
+			release_date.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			duration.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
+			bitrate.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
+			file_size.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 
 			// Set up DND-related bits.
 			TargetEntry other_row = {
@@ -468,7 +451,6 @@ namespace Hum
 			{
 				// Set up the image in the header of the status_or_add_to_playlist column.
 				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.STOCK_MEDIA_PLAY, Gtk.IconSize.MENU);
-				view.set_headers_clickable (false);
 
 				// Set up drag and drop receivership. The playlist view should be able to
 				// receive dragged items from inside the widget (other rows), other
@@ -484,7 +466,6 @@ namespace Hum
 			{
 				// Set up the image in the header of the status_or_add_to_playlist column.
 				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.STOCK_ADD, Gtk.IconSize.MENU);
-				view.set_headers_clickable (true);
 
 				// Set up drag and drop sender capability. Items from here should only be
 				// draggable to the playlist.
@@ -964,6 +945,8 @@ namespace Hum
 			this.player.Play (track);
 		}
 
+		// FIXME: Replace this with global keybindings, because this totally screws
+		//        up standard TreeView keybindings (up, down, search, etc.)
 		public bool handle_playlist_view_key_pressed (Gdk.EventKey event)
 		{
 			Gtk.TreeIter selection;
@@ -1032,7 +1015,7 @@ namespace Hum
 
 				default:
 					debug ("%d pressed", event.hardware_keycode);
-					break;
+					return false;
 			}
 
 			return true;

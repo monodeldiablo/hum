@@ -58,9 +58,28 @@ namespace Hum
 	{
 		/* Actions */
 
-		public Gtk.Action quit_action;
-		public Gtk.Action about_action;
+		public Gtk.Action open_action;
+		public Gtk.Action save_action;
+		public Gtk.Action save_as_action;
 		public Gtk.Action properties_action;
+		public Gtk.Action quit_action;
+		public Gtk.Action cut_action;
+		public Gtk.Action copy_action;
+		public Gtk.Action paste_action;
+		public Gtk.Action select_all_action;
+		public Gtk.Action deselect_all_action;
+		public Gtk.Action add_action;
+		public Gtk.Action remove_action;
+		public Gtk.Action clear_action;
+		public Gtk.Action preferences_action;
+		public Gtk.Action about_action;
+
+		/* Action Groups */
+
+		public Gtk.ActionGroup global_actions;
+		public Gtk.ActionGroup search_actions;
+		public Gtk.ActionGroup playlist_actions;
+		public Gtk.ActionGroup track_actions;
 
 		/* Widgets */
 
@@ -134,10 +153,28 @@ namespace Hum
 				quit ();
 			}
 
+			// Create action groups.
+			this.global_actions = new Gtk.ActionGroup ("global_actions");
+			this.search_actions = new Gtk.ActionGroup ("search_actions");
+			this.playlist_actions = new Gtk.ActionGroup ("playlist_actions");
+			this.track_actions = new Gtk.ActionGroup ("track_actions");
+
 			// Assign actions to variables for signal handling.
-			this.quit_action = (Gtk.Action) builder.get_object ("quit_action");
-			this.about_action = (Gtk.Action) builder.get_object ("about_action");
+			this.open_action = (Gtk.Action) builder.get_object ("open_action");
+			this.save_action = (Gtk.Action) builder.get_object ("save_action");
+			this.save_as_action = (Gtk.Action) builder.get_object ("save_as_action");
 			this.properties_action = (Gtk.Action) builder.get_object ("properties_action");
+			this.quit_action = (Gtk.Action) builder.get_object ("quit_action");
+			this.cut_action = (Gtk.Action) builder.get_object ("cut_action");
+			this.copy_action = (Gtk.Action) builder.get_object ("copy_action");
+			this.paste_action = (Gtk.Action) builder.get_object ("paste_action");
+			this.select_all_action = (Gtk.Action) builder.get_object ("select_all_action");
+			this.deselect_all_action = (Gtk.Action) builder.get_object ("deselect_all_action");
+			this.add_action = (Gtk.Action) builder.get_object ("add_action");
+			this.remove_action = (Gtk.Action) builder.get_object ("remove_action");
+			this.clear_action = (Gtk.Action) builder.get_object ("clear_action");
+			this.preferences_action = (Gtk.Action) builder.get_object ("preferences_action");
+			this.about_action = (Gtk.Action) builder.get_object ("about_action");
 
 			// Assign the widgets to a variable for manipulation later.
 			this.window = (Gtk.Window) builder.get_object ("main_window");
@@ -195,6 +232,9 @@ namespace Hum
 			this.playlist_select = this.playlist_view.get_selection ();
 			this.playlist_select.set_mode (Gtk.SelectionMode.SINGLE);
 
+			// Initialize the actions and action groups.
+			set_up_actions ();
+
 			// Hook up some signals.
 			set_up_signals ();
 
@@ -221,7 +261,113 @@ namespace Hum
 				this.player.Play (-1);
 			}
 		}
-	
+
+		// Set up the actions and action groups.
+		private void set_up_actions ()
+		{
+			// Define globally-accessible actions.
+			this.global_actions.add_action_with_accel (this.open_action, "<control>O");
+			this.global_actions.add_action_with_accel (this.quit_action, "<control>Q");
+			this.global_actions.add_action (this.preferences_action);
+			this.global_actions.add_action (this.about_action);
+
+			// Define search-dependent actions.
+			this.search_actions.add_action_with_accel (this.select_all_action, "<control>A");
+			this.search_actions.add_action_with_accel (this.deselect_all_action, "<shift><control>A");
+			this.search_actions.add_action_with_accel (this.add_action, "a");
+
+			// Define playlist-dependent actions.
+			this.playlist_actions.add_action_with_accel (this.properties_action, "<alt>Return");
+			this.playlist_actions.add_action_with_accel (this.cut_action, "<control>X");
+			this.playlist_actions.add_action_with_accel (this.copy_action, "<control>C");
+			this.playlist_actions.add_action_with_accel (this.paste_action, "<control>V");
+			this.playlist_actions.add_action_with_accel (this.remove_action, "Delete");
+			this.playlist_actions.add_action_with_accel (this.clear_action, "<shift>Delete");
+
+			this.global_actions.sensitive = true;
+			this.search_actions.sensitive = false;
+			this.playlist_actions.sensitive = false;
+		}
+
+		// Connect a bunch of signals to their handlers.
+		private void set_up_signals ()
+		{
+			this.window.destroy += quit;
+			this.quit_action.activate += quit;
+
+			this.about_action.activate += show_about_dialog;
+			this.properties_action.activate += show_properties_dialog;
+
+			this.playlist_select.changed += handle_playlist_select_changed;
+			this.search_select.changed += handle_search_select_changed;
+
+			this.play_button.clicked += handle_play_clicked;
+			this.pause_button.clicked += handle_pause_clicked;
+			this.prev_button.clicked += handle_prev_clicked;
+			this.next_button.clicked += handle_next_clicked;
+			this.repeat_button.clicked += handle_repeat_clicked;
+			this.shuffle_button.clicked += handle_shuffle_clicked;
+
+			this.progress_slider.value_changed += handle_slider_moved;
+			this.search_button.clicked += handle_search_requested;
+			this.search_entry.changed += handle_search_requested;
+			this.search_entry.icon_release += handle_search_cleared;
+
+			this.search_view.row_activated += handle_search_view_selected;
+			this.search_view.drag_data_get += handle_drag_data_get;
+			this.playlist_view.row_activated += handle_playlist_view_selected;
+			this.playlist_view.key_press_event += handle_playlist_view_key_pressed;
+			this.playlist_view.drag_data_received += handle_drag_data_received;
+
+			// Signals from hum-player.
+			this.player.PlayingTrack += handle_playing_track;
+			this.player.PausedPlayback += handle_paused_playback;
+			this.player.StoppedPlayback += handle_stopped_playback;
+			this.player.Seeked += handle_seeked;
+			this.player.RepeatToggled += handle_repeat_toggled;
+			this.player.ShuffleToggled += handle_shuffle_toggled;
+			this.player.TrackAdded += handle_track_added;
+			this.player.TrackRemoved += handle_track_removed;
+			this.player.Exiting += quit;
+		}
+
+		// Bring the interface up to date with the back end.
+		private void set_up_interface ()
+		{
+			string[] uris = this.player.GetPlaylist ();
+			string playback_status = this.player.GetPlaybackStatus ();
+			int position = this.player.GetCurrentTrack ();
+			bool repeat_toggled = this.player.GetRepeat ();
+			bool shuffle_toggled = this.player.GetShuffle ();
+
+			// Hide the search view at start up.
+			this.view_separator.set_position (0);
+
+			foreach (string uri in uris)
+			{
+				add_track_to_view (this.playlist_store, uri);
+			}
+
+			// Clear the player's state.
+			set_up_stopped_state ();
+
+			switch (playback_status)
+			{
+				case "PLAYING":
+					set_up_playing_state (position);
+					break;
+				case "PAUSED":
+					set_up_paused_state (position);
+					break;
+				case "READY":
+				default:
+					break;
+			}
+
+			this.repeat_button.active = repeat_toggled;
+			this.shuffle_button.active = shuffle_toggled;
+		}
+
 		// Set up the search and playlist views.
 		private void set_up_list_view (Gtk.ListStore store, Gtk.TreeView view)
 		{
@@ -381,91 +527,14 @@ namespace Hum
 			view.append_column (file_size);
 		}
 
-		// Connect a bunch of signals to their handlers.
-		private void set_up_signals ()
+		private void show_about_dialog ()
 		{
-			// If the window is closed, what's the point?
-			this.window.destroy += quit;
-			this.quit_action.activate += quit;
-
-			this.about_action.activate += show_about_dialog;
-			this.properties_action.activate += show_properties_dialog;
-
-			this.play_button.clicked += handle_play_clicked;
-			this.pause_button.clicked += handle_pause_clicked;
-			this.prev_button.clicked += handle_prev_clicked;
-			this.next_button.clicked += handle_next_clicked;
-			this.repeat_button.clicked += handle_repeat_clicked;
-			this.shuffle_button.clicked += handle_shuffle_clicked;
-
-			this.progress_slider.value_changed += handle_slider_moved;
-			this.search_button.clicked += handle_search_requested;
-			this.search_entry.changed += handle_search_requested;
-			this.search_entry.icon_release += handle_search_cleared;
-			
-			this.search_view.row_activated += handle_search_view_selected;
-			this.search_view.drag_data_get += handle_drag_data_get;
-			this.playlist_view.row_activated += handle_playlist_view_selected;
-			this.playlist_view.key_press_event += handle_playlist_view_key_pressed;
-			this.playlist_view.drag_data_received += handle_drag_data_received;
-
-			// Signals from hum-player.
-			this.player.PlayingTrack += handle_playing_track;
-			this.player.PausedPlayback += handle_paused_playback;
-			this.player.StoppedPlayback += handle_stopped_playback;
-			this.player.Seeked += handle_seeked;
-			this.player.RepeatToggled += handle_repeat_toggled;
-			this.player.ShuffleToggled += handle_shuffle_toggled;
-			this.player.TrackAdded += handle_track_added;
-			this.player.TrackRemoved += handle_track_removed;
-			this.player.Exiting += quit;
-		}
-
-		// Bring the interface up to date with the back end.
-		private void set_up_interface ()
-		{
-			string[] uris = this.player.GetPlaylist ();
-			string playback_status = this.player.GetPlaybackStatus ();
-			int position = this.player.GetCurrentTrack ();
-			bool repeat_toggled = this.player.GetRepeat ();
-			bool shuffle_toggled = this.player.GetShuffle ();
-
-			// Hide the search view at start up.
-			this.view_separator.set_position (0);
-
-			foreach (string uri in uris)
-			{
-				add_track_to_view (this.playlist_store, uri);
-			}
-
-			// Clear the player's state.
-			set_up_stopped_state ();
-
-			switch (playback_status)
-			{
-				case "PLAYING":
-					set_up_playing_state (position);
-					break;
-				case "PAUSED":
-					set_up_paused_state (position);
-					break;
-				case "READY":
-				default:
-					break;
-			}
-
-			this.repeat_button.active = repeat_toggled;
-			this.shuffle_button.active = shuffle_toggled;
-		}
-
-		private void show_properties_dialog ()
-		{
-			Gtk.Builder properties_ui = new Gtk.Builder ();
-			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "properties.ui");
+			Gtk.Builder about_ui = new Gtk.Builder ();
+			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "about.ui");
 
 			try
 			{
-				properties_ui.add_from_file (path);
+				about_ui.add_from_file (path);
 			}
 			catch (GLib.Error e)
 			{
@@ -473,21 +542,28 @@ namespace Hum
 			}
 
 			// Assign the widgets to a variable for manipulation later.
-			this.properties_dialog = (Gtk.Dialog) properties_ui.get_object ("properties_dialog");
-			Gtk.Action close_action = (Gtk.Action) properties_ui.get_object ("close_action");
+			this.about_dialog = (Gtk.AboutDialog) about_ui.get_object ("about_dialog");
 
-			Gtk.Label title_value = (Gtk.Label) properties_ui.get_object ("title_value");
-			Gtk.Label artist_value = (Gtk.Label) properties_ui.get_object ("artist_value");
-			Gtk.Label album_value = (Gtk.Label) properties_ui.get_object ("album_value");
-			Gtk.Label genre_value = (Gtk.Label) properties_ui.get_object ("genre_value");
-			Gtk.Label track_value = (Gtk.Label) properties_ui.get_object ("track_value");
-			Gtk.Label release_date_value = (Gtk.Label) properties_ui.get_object ("release_date_value");
-			Gtk.Label duration_value = (Gtk.Label) properties_ui.get_object ("duration_value");
-			Gtk.Label bitrate_value = (Gtk.Label) properties_ui.get_object ("bitrate_value");
-			Gtk.Label file_size_value = (Gtk.Label) properties_ui.get_object ("file_size_value");
-			Gtk.Label location_value = (Gtk.Label) properties_ui.get_object ("location_value");
+			this.about_dialog.version = Config.VERSION;
 
-			// Fill in the track metadata.
+			// Hook up the "close" action.
+			this.about_dialog.response += handle_about_dialog_response;
+
+			this.about_dialog.show_all ();
+		}
+
+		private void handle_about_dialog_response (int response_id)
+		{
+			// NOTE: Apparently, the response_id for the "Close" button is -6...
+			if (response_id == -6)
+			{
+				this.about_dialog.close ();
+			}
+		}
+
+		private void show_properties_dialog ()
+		{
+			// Verify that a track is selected and, if so, fill in the track metadata.
 			Gtk.TreeIter selection;
 			Gtk.TreeModel model;
 			bool is_selected = this.playlist_select.get_selected (out model, out selection);
@@ -495,6 +571,35 @@ namespace Hum
 
 			if (is_selected && selection_is_valid)
 			{
+				// Load the UI description file.
+				Gtk.Builder properties_ui = new Gtk.Builder ();
+				string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "properties.ui");
+
+				try
+				{
+					properties_ui.add_from_file (path);
+				}
+				catch (GLib.Error e)
+				{
+					stderr.printf ("Error loading the interface definition file: %s\n", e.message);
+				}
+
+				// Assign the widgets to a variable for manipulation later.
+				this.properties_dialog = (Gtk.Dialog) properties_ui.get_object ("properties_dialog");
+				Gtk.Action close_action = (Gtk.Action) properties_ui.get_object ("close_action");
+
+				Gtk.Label title_value = (Gtk.Label) properties_ui.get_object ("title_value");
+				Gtk.Label artist_value = (Gtk.Label) properties_ui.get_object ("artist_value");
+				Gtk.Label album_value = (Gtk.Label) properties_ui.get_object ("album_value");
+				Gtk.Label genre_value = (Gtk.Label) properties_ui.get_object ("genre_value");
+				Gtk.Label track_value = (Gtk.Label) properties_ui.get_object ("track_value");
+				Gtk.Label release_date_value = (Gtk.Label) properties_ui.get_object ("release_date_value");
+				Gtk.Label duration_value = (Gtk.Label) properties_ui.get_object ("duration_value");
+				Gtk.Label bitrate_value = (Gtk.Label) properties_ui.get_object ("bitrate_value");
+				Gtk.Label file_size_value = (Gtk.Label) properties_ui.get_object ("file_size_value");
+				Gtk.Label location_value = (Gtk.Label) properties_ui.get_object ("location_value");
+
+				// Pull the values for this track out of the list store.
 				GLib.Value uri;
 				GLib.Value title;
 				GLib.Value artist;
@@ -539,51 +644,27 @@ namespace Hum
 				}
 
 				this.properties_dialog.set_title ("%s Properties".printf ((string) title));
+
+				// Hook up the "close" action.
+				close_action.activate += close_properties_dialog;
+
+				this.properties_dialog.show_all ();
 			}
+		}
 
-			// Hook up the "close" action.
-			close_action.activate += close_properties_dialog;
+		private void handle_playlist_select_changed ()
+		{
+			this.playlist_actions.sensitive = true;
+		}
 
-			this.properties_dialog.show_all ();
+		private void handle_search_select_changed ()
+		{
+			this.search_actions.sensitive = true;
 		}
 
 		private void close_properties_dialog ()
 		{
 			this.properties_dialog.close ();
-		}
-
-		private void show_about_dialog ()
-		{
-			Gtk.Builder about_ui = new Gtk.Builder ();
-			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "about.ui");
-
-			try
-			{
-				about_ui.add_from_file (path);
-			}
-			catch (GLib.Error e)
-			{
-				stderr.printf ("Error loading the interface definition file: %s\n", e.message);
-			}
-
-			// Assign the widgets to a variable for manipulation later.
-			this.about_dialog = (Gtk.AboutDialog) about_ui.get_object ("about_dialog");
-
-			this.about_dialog.version = Config.VERSION;
-
-			// Hook up the "close" action.
-			this.about_dialog.response += handle_about_dialog_response;
-
-			this.about_dialog.show_all ();
-		}
-
-		private void handle_about_dialog_response (int response_id)
-		{
-			// NOTE: Apparently, the response_id for the "Close" button is -6...
-			if (response_id == -6)
-			{
-				this.about_dialog.close ();
-			}
 		}
 
 		private void show_pause_button ()
@@ -801,11 +882,11 @@ namespace Hum
 
 			else
 			{
-				debug ("Got %s for the player's state", status);
-
 				// NOTE: Sometimes, I don't know why, but when seeking a track, GStreamer
 				//       reports the state as "PAUSED". This can cause the UI to get stuck,
-				//       as if it's paused, even though the track keeps playing.
+				//       as if it's paused, even though the track keeps playing. Hence the
+				//       following sleep hack, which should allow GStreamer to catch up to
+				//       the seek and resume the "PLAYING" state.
 				GLib.Thread.usleep(50);
 				status = this.player.GetPlaybackStatus ();
 

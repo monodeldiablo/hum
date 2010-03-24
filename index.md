@@ -77,9 +77,7 @@ You should have received a copy of the GNU General Public License along with Hum
 
 Authors
 -------
-Brian Davis (brian.william.davis (at) gmail.com)
-
-Marijana Šurković (marijana.surkovic (at) gmail.com)
+Brian Davis (brian.william.davis (at) gmail.com) & Marijana Šurković (marijana.surkovic (at) gmail.com)
 
 Contact
 -------

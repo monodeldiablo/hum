@@ -45,7 +45,7 @@ other than my wife and I use this stuff.
 
 ### Arch Linux ###
 I've taken the liberty of throwing together a
-[PKGBUILD](http://github.com/monodeldiablo/hum/downloads/PKGBUILD) for you Arch
+[PKGBUILD](http://github.com/downloads/monodeldiablo/hum/PKGBUILD) for you Arch
 Linux users out there. It works for me, which was the only verification I could
 be bothered to do.
 

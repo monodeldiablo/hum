@@ -32,7 +32,8 @@ enjoy listening to her Benny Goodman on?
 Dependencies
 ------------
  * Vala 0.7.6 or better (if you feel like building the source)
- * Tracker 0.6.95 or better
+ * Tracker < 0.8.0 (I'm working on catching up to all the progress in the 0.8
+   and 0.9 branches)
  * GTK 2.16 or better
  * GStreamer 0.10 or better
 

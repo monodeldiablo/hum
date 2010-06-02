@@ -32,7 +32,6 @@ namespace Hum
 		public int track_number { get; set; }
 		public string release_date { get; set; }
 		public string genre { get; set; }
-		public string bitrate { get; set; }
 		public string file_size { get; set; }
 		//public string codec { get; set; }
 		
@@ -53,7 +52,6 @@ namespace Hum
 			this.album = "Unknown Album";
 			this.release_date = "";
 			this.duration = 0;
-			this.bitrate = "";
 			this.file_size = "";
 		}
 	}

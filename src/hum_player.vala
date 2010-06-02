@@ -3,7 +3,7 @@
  *
  * This file is part of Hum, the low-calorie music manager.
  *
- * Copyright (C) 2007-2009 by Brian Davis <brian.william.davis@gmail.com>
+ * Copyright (C) 2007-2010 by Brian Davis <brian.william.davis@gmail.com>
  *
  * Hum is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

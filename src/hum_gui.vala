@@ -114,9 +114,11 @@ namespace Hum
 		private int update_timeout_id = -1;
 		private int update_period = 500;
 		private int animate_timeout_id = -1;
-		private int animate_period = 100;
-		private int animate_increment = 20;
-		private int search_results_height = 100;
+		private int animate_period = 50;
+		private int animate_increment = 10;
+
+		private int max_search_results_in_view = 5;
+		private int search_results_height = 0;
 
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
@@ -884,11 +886,39 @@ namespace Hum
 
 		private bool expand_search_pane ()
 		{
-			int position = this.view_separator.get_position ();
-
-			if (position < search_results_height)
+			// If the search pane hasn't started descending yet...
+			if (this.search_results_height == 0)
 			{
-				this.view_separator.set_position (position + animate_increment);
+				int num_results = this.search_store.length;
+				Gtk.TreePath first_row = new Gtk.TreePath.from_indices (0, -1);
+				Gdk.Rectangle row_dims;
+				int row_height;
+
+				this.search_view.get_cell_area (first_row, this.search_view.get_column (1), out row_dims);
+				row_height = row_dims.height;
+
+				// Expand the search pane to either the number of rows returned or, if
+				// there are more than "max_search_results_in_view", that number.
+				if (row_height > 0)
+				{
+					if (num_results < this.max_search_results_in_view)
+					{
+						this.search_results_height = row_height * num_results;
+					}
+					else
+					{
+						this.search_results_height = row_height * this.max_search_results_in_view;
+					}
+
+					// NOTE: We have to add the size of the header to the search view size to
+					//       accurately capture its viewable area.
+					this.search_results_height += row_height;
+				}
+			}
+
+			if (this.view_separator.position < search_results_height || search_results_height == 0)
+			{
+				this.view_separator.position += animate_increment;
 				return true;
 			}
 
@@ -1210,14 +1240,13 @@ namespace Hum
 			}
 		}
 
-		// FIXME: Instead of having this expand to a specified height, it should
-		//        expand to the number of results, stopping at some sane maximum.
-		//        Investigate the use of Gtk.TreeView.get_cell_area () to do this.
 		// FIXME: Investigate live search.
 		public void handle_search_requested ()
 		{
 			this.search_entry.set_progress_fraction (0.0);
 			this.search_store.clear ();
+			this.search_results_height = 0;
+			this.view_separator.position = 0;
 
 			string terms = this.search_entry.text;
 			string[] uris = this.query_engine.search (terms);
@@ -1234,11 +1263,14 @@ namespace Hum
 
 				this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, expand_search_pane);
 			}
+/* This causes jiggling of the view separator, since the two timeouts can get
+   crossed, creating an infinite loop.
 
 			else
 			{
 				this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, shrink_search_pane);
 			}
+*/
 		}
 
 		public void handle_search_cleared ()

@@ -1,6 +1,7 @@
 v0.4
 ----
 
+* figure out why the progress indicator doesn't move for the first song
 * fix the search pane so that it doesn't jiggle when only one result comes back
   (see below for a solution)
 * only expand the search pane for as many results as there are, up to 5

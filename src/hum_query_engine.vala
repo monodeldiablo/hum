@@ -87,7 +87,8 @@ namespace Hum
 		public string[] search (string terms)
 		{
 			string[] matches = {};
-	
+
+/* For now, we want to disable searching for all tracks (SLOW!).
 			// The user didn't enter any search terms, so we'll just grab everything.
 			if (0 == terms.size ())
 			{
@@ -105,9 +106,9 @@ namespace Hum
 					critical ("Error while fetching all tracks: %s", e.message);
 				}
 			}
-
+*/
 			// The user entered search terms.
-			else
+			if (terms.size () > 0)
 			{
 				debug ("Searching for \"%s\"...", terms);
 	

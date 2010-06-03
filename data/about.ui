@@ -12,7 +12,7 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="has_separator">False</property>
     <property name="program_name">Hum Music Player</property>
-    <property name="copyright" translatable="yes">Copyright &#xA9; 2007-2009 by Brian Davis</property>
+    <property name="copyright" translatable="yes">Copyright &#xA9; 2007-2010 by Brian Davis</property>
     <property name="comments" translatable="yes">The low calorie music manager.</property>
     <property name="website">http://github.com/monodeldiablo/hum</property>
     <property name="license" translatable="yes">Hum is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.

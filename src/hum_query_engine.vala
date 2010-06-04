@@ -29,24 +29,12 @@ namespace Hum
 	{
 		private DBus.Connection conn;
 		private dynamic DBus.Object tracker;
-		private dynamic DBus.Object tracker_search;
-		private dynamic DBus.Object tracker_files;
-		private dynamic DBus.Object tracker_metadata;
-		
-		private string service_type = "Music";
-		private string[] fields = {
-			"Audio:Title",
-			"Audio:TrackNo",
-			"Audio:Genre",
-			"Audio:Artist",
-			"Audio:Album",
-			"Audio:ReleaseDate",
-			"Audio:Duration",
-			"Audio:Bitrate",
-			"File:Size"};//,
-			//"Audio:Codec",
-			//"DC:Keywords"};
-		
+
+		private string search_all_uris_query = "SELECT ?url WHERE {?song a nmm:MusicPiece ; nie:isStoredAs ?as . ?as nie:url ?url .}";
+		private string search_uris_query = "SELECT nie:url(?s) WHERE {?s fts:match \"%s\". ?s a nmm:MusicPiece}";
+		private string get_metadata_query = "SELECT ?title ?track ?genre ?performer ?album ?date ?duration ?bitrate ?size WHERE {?song nie:url \"%s\"; nie:title ?title ; nmm:performer [ nmm:artistName ?performer ] ; nmm:musicAlbum [ nie:title ?album ] . OPTIONAL { ?song nmm:genre ?genre	} . OPTIONAL { ?song nmm:trackNumber ?track } . OPTIONAL { ?song nie:contentCreated ?date } . OPTIONAL { ?song nfo:duration ?duration } . OPTIONAL { ?song nfo:averageBitrate ?bitrate } . OPTIONAL { ?song nfo:fileSize ?size }}";
+		// FIXME: add a tag query, too.
+
 		construct
 		{
 			debug ("Connecting to Tracker...");
@@ -54,23 +42,11 @@ namespace Hum
 			{
 				conn = DBus.Bus.get (DBus.BusType.SESSION);
 
-				this.tracker = conn.get_object ("org.freedesktop.Tracker",
-					"/org/freedesktop/Tracker",
-					"org.freedesktop.Tracker");
+				this.tracker = conn.get_object ("org.freedesktop.Tracker1",
+					"/org/freedesktop/Tracker1/Resources",
+					"org.freedesktop.Tracker1.Resources");
 
-				debug ("Connected to Tracker v%d!", tracker.GetVersion ());
-
-				this.tracker_search = conn.get_object ("org.freedesktop.Tracker",
-					"/org/freedesktop/Tracker/Search",
-					"org.freedesktop.Tracker.Search");
-
-				this.tracker_files = conn.get_object ("org.freedesktop.Tracker",
-					"/org/freedesktop/Tracker/Files",
-					"org.freedesktop.Tracker.Files");
-			
-				this.tracker_metadata = conn.get_object ("org.freedesktop.Tracker",
-					"/org/freedesktop/Tracker/Metadata",
-					"org.freedesktop.Tracker.Metadata");
+				debug ("Connected to Tracker!");
 			}
 			catch (DBus.Error e)
 			{
@@ -79,6 +55,7 @@ namespace Hum
 		}
 
 		// This method returns the list of URIs of files that match the given search.
+		// If the user entered a blank string, no results will be returned.
 		// FIXME: Perhaps make this asynchronous, so that the application doesn't
 		//        freeze up for long-running queries.
 		// FIXME: Remove the 512 item limit and introduce a paging system, whereby
@@ -88,59 +65,25 @@ namespace Hum
 		{
 			string[] matches = {};
 
-/* For now, we want to disable searching for all tracks (SLOW!).
-			// The user didn't enter any search terms, so we'll just grab everything.
-			if (0 == terms.size ())
+			debug ("Searching for \"%s\"...", terms);
+			try
 			{
-				debug ("Searching for all tracks...");
-	
-				try
+				string[][] supermatches = this.tracker.SparqlQuery(this.search_uris_query.printf (terms));
+
+				// The results come in as an array of an array of strings. Since each
+				// inner array is of length=1, we convert it to a simple array of strings.
+				for (int i = 0; i < supermatches.length; i++)
 				{
-					matches = this.tracker_files.GetByServiceType (-1,
-						"Music",
-						0,
-						-1);
-				}
-				catch (GLib.Error e)
-				{
-					critical ("Error while fetching all tracks: %s", e.message);
+					matches += supermatches[i][0];
 				}
 			}
-*/
-			// The user entered search terms.
-			if (terms.size () > 0)
+			catch (GLib.Error e)
 			{
-				debug ("Searching for \"%s\"...", terms);
-	
-				try
-				{
-					matches = tracker_search.Text (-1,
-						"Music",
-						terms,
-						0,
-						512);
-				}
-				catch (GLib.Error e)
-				{
-					critical ("Error while searching for \"%s\": %s", terms, e.message);
-				}
+				critical ("Error while searching for \"%s\": %s", terms, e.message);
 			}
 	
 			debug ("Found %d matches.", matches.length);
 
-			for (int i = 0; i < matches.length; ++i)
-			{
-				try
-				{
-					matches[i] = GLib.Filename.to_uri (matches[i]);
-				}
-
-				catch (GLib.Error e)
-				{
-					critical ("Error attempting to construct a URI for %s", matches[i]);
-				}
-			}
-			
 			return matches;
 		}
 
@@ -151,34 +94,36 @@ namespace Hum
 
 			try
 			{
-				string path = GLib.Filename.from_uri (uri);
-				string[] metadata = this.tracker_metadata.Get (this.service_type,
-					path,
-					this.fields);
-				int64 useconds_in_second = 1000000000;
+				string[][] metadata = this.tracker.SparqlQuery (this.get_metadata_query.printf (uri));
 
-				track.title = metadata[0];
-				track.track_number = metadata[1].to_int ();
-				track.genre = metadata[2];
-
-				if (metadata[3] != "")
+				// FIXME: This should just throw an exception in the error case.
+				if (metadata.length > 0)
 				{
-					track.artist = metadata[3];
-				}
+					int64 useconds_in_second = 1000000000;
 
-				if (metadata[4] != "")
-				{
-					track.album = metadata[4];
-				}
+					track.title = metadata[0][0];
+					track.track_number = metadata[0][1].to_int ();
+					track.genre = metadata[0][2];
 
-				track.release_date = metadata[5];
-				track.duration = metadata[6].to_int64 () * useconds_in_second;
-				track.bitrate = metadata[7];
-				track.file_size = metadata[8];
+					if (metadata[0][3] != "")
+					{
+						track.artist = metadata[0][3];
+					}
+
+					if (metadata[0][4] != "")
+					{
+						track.album = metadata[0][4];
+					}
+
+					track.release_date = metadata[0][5];
+					track.duration = metadata[0][6].to_int64 () * useconds_in_second;
+					track.bitrate = metadata[0][7];
+					track.file_size = metadata[0][8];
+				}
 			}
 			catch (GLib.Error e)
 			{
-				critical ("Error while converting '%s' to a path: %s", uri, e.message);
+				critical ("Error while converting '%s' to a track: %s", uri, e.message);
 			}
 
 			return track;

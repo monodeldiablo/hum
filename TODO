@@ -1,10 +1,12 @@
 v0.4
 ----
 
+* speed up searches somehow (batched metadata requests?)
+* handle signals from Tracker indicating a track has been added, removed, or
+  that a track's metadata has changed
 * figure out why the progress indicator doesn't move for the first song
 * fix the search pane so that it doesn't jiggle when only one result comes back
   (see below for a solution)
-* only expand the search pane for as many results as there are, up to 5
 * fix DND of multiple items from the desktop
 * fix seeking w/one click
 * define Actions and ActionGroups to simplify the UI code (ex: a close_window
@@ -62,3 +64,4 @@ v?.?
 * investigate taglib, or some alternate tag harvesting code
 * investigate "collate_key()" in the sorting code
 * implement a plugin interface
+* implement podcast handling (Tracker RSS miner + mp3)

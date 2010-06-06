@@ -41,6 +41,11 @@ hum_player_LDADD = \
 EXTRA_DIST = \
 	$(NULL)
 
+CLEANFILES = \
+	*.c \
+	*.h \
+	$(NULL)
+
 DISTCLEANFILES = \
 	$(NULL)
 

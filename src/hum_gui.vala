@@ -219,9 +219,6 @@ namespace Hum
 			// Hook up some signals.
 			set_up_signals ();
 
-			// Update the interface to reflect the backend.
-			set_up_interface ();
-
 			// If the application was launched with arguments, try
 			// to load them as tracks.
 			if (args.length > 1)
@@ -241,6 +238,9 @@ namespace Hum
 
 				this.player.Play (-1);
 			}
+
+			// Update the interface to reflect the backend.
+			set_up_interface ();
 		}
 
 		// Set up the actions and action groups.
@@ -321,9 +321,6 @@ namespace Hum
 			bool repeat_toggled = this.player.GetRepeat ();
 			bool shuffle_toggled = this.player.GetShuffle ();
 
-			// Hide the search view at start up.
-			this.view_separator.set_position (0);
-
 			foreach (string uri in uris)
 			{
 				add_track_to_view (this.playlist_store, uri);
@@ -347,6 +344,11 @@ namespace Hum
 
 			this.repeat_button.active = repeat_toggled;
 			this.shuffle_button.active = shuffle_toggled;
+
+			this.window.show_all ();
+
+			// Hide the search view at start up.
+			this.view_separator.set_position (search_results_height);
 		}
 
 		// Set up the search and playlist views.
@@ -447,8 +449,6 @@ namespace Hum
 				uri_list};
 
 			// Configure some playlist-specific stuff.
-			// FIXME: Set the search column to Columns.TITLE to allow searching within
-			//        the playlist.
 			if (view == this.playlist_view)
 			{
 				// Set up the image in the header of the status_or_add_to_playlist column.
@@ -1331,8 +1331,7 @@ namespace Hum
 	{
 		Gtk.init (ref args);
 		
-		var app = new Hum.UserInterface (args);
-		app.window.show_all ();
+		new Hum.UserInterface (args);
 	
 		Gtk.main ();
 		

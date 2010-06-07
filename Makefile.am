@@ -45,6 +45,7 @@ EXTRA_DIST = \
 	$(NULL)
 
 DISTCLEANFILES = \
+	README
 	org.washedup.Hum.service \
 	intltool-extract \
 	intltool-merge \

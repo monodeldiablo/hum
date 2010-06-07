@@ -30,7 +30,6 @@ namespace Hum
 		private DBus.Connection conn;
 		private dynamic DBus.Object tracker;
 
-		private string search_all_uris_query = "SELECT ?url WHERE {?song a nmm:MusicPiece ; nie:isStoredAs ?as . ?as nie:url ?url .}";
 		private string search_uris_query = "SELECT nie:url(?s) WHERE {?s fts:match \"%s\". ?s a nmm:MusicPiece}";
 		private string get_metadata_query = "SELECT ?title ?track ?genre ?performer ?album ?date ?duration ?bitrate ?size WHERE {?song nie:url \"%s\"; nie:title ?title ; nmm:performer [ nmm:artistName ?performer ] ; nmm:musicAlbum [ nie:title ?album ] . OPTIONAL { ?song nmm:genre ?genre	} . OPTIONAL { ?song nmm:trackNumber ?track } . OPTIONAL { ?song nie:contentCreated ?date } . OPTIONAL { ?song nfo:duration ?duration } . OPTIONAL { ?song nfo:averageBitrate ?bitrate } . OPTIONAL { ?song nfo:fileSize ?size }}";
 		// FIXME: add a tag query, too.

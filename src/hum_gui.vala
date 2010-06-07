@@ -207,6 +207,9 @@ namespace Hum
 			set_up_list_view (this.playlist_store, this.playlist_view);
 			set_up_list_view (this.search_store, this.search_view);
 
+			// Update the interface to reflect the backend.
+			set_up_interface ();
+
 			// Set the selection mode.
 			this.search_select = this.search_view.get_selection ();
 			this.search_select.set_mode (Gtk.SelectionMode.MULTIPLE);
@@ -218,9 +221,6 @@ namespace Hum
 
 			// Hook up some signals.
 			set_up_signals ();
-
-			// Update the interface to reflect the backend.
-			set_up_interface ();
 
 			// If the application was launched with arguments, try
 			// to load them as tracks.
@@ -321,9 +321,6 @@ namespace Hum
 			bool repeat_toggled = this.player.GetRepeat ();
 			bool shuffle_toggled = this.player.GetShuffle ();
 
-			// Hide the search view at start up.
-			this.view_separator.set_position (0);
-
 			foreach (string uri in uris)
 			{
 				add_track_to_view (this.playlist_store, uri);
@@ -383,20 +380,17 @@ namespace Hum
 			Gtk.TreeViewColumn file_size;
 			Gtk.Image status_or_add_to_playlist_header;
 
-			//Gtk.CellRendererText renderer = new Gtk.CellRendererText ();
-			//renderer.ellipsize = Pango.EllipsizeMode.END;
-
-			uri = new Gtk.TreeViewColumn.with_attributes ("URI", text_renderer, "text", Columns.URI);
-			status_or_add_to_playlist = new Gtk.TreeViewColumn.with_attributes ("", pixbuf_renderer, "stock-id", Columns.STATUS_OR_ADD_TO_PLAYLIST);
-			title = new Gtk.TreeViewColumn.with_attributes ("Title", text_renderer, "text", Columns.TITLE);
-			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", text_renderer, "text", Columns.ARTIST);
-			album = new Gtk.TreeViewColumn.with_attributes ("Album", text_renderer, "text", Columns.ALBUM);
-			track = new Gtk.TreeViewColumn.with_attributes ("#", text_renderer, "text", Columns.TRACK);
-			genre = new Gtk.TreeViewColumn.with_attributes ("Genre", text_renderer, "text", Columns.GENRE);
-			release_date = new Gtk.TreeViewColumn.with_attributes ("Release Date", text_renderer, "text", Columns.RELEASE_DATE);
-			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", text_renderer, "text", Columns.DURATION);
-			bitrate = new Gtk.TreeViewColumn.with_attributes ("Bitrate", text_renderer, "text", Columns.BITRATE);
-			file_size = new Gtk.TreeViewColumn.with_attributes ("File Size", text_renderer, "text", Columns.FILE_SIZE);
+			uri = new Gtk.TreeViewColumn.with_attributes ("URI", this.text_renderer, "text", Columns.URI);
+			status_or_add_to_playlist = new Gtk.TreeViewColumn.with_attributes ("", this.pixbuf_renderer, "stock-id", Columns.STATUS_OR_ADD_TO_PLAYLIST);
+			title = new Gtk.TreeViewColumn.with_attributes ("Title", this.text_renderer, "text", Columns.TITLE);
+			artist = new Gtk.TreeViewColumn.with_attributes ("Artist", this.text_renderer, "text", Columns.ARTIST);
+			album = new Gtk.TreeViewColumn.with_attributes ("Album", this.text_renderer, "text", Columns.ALBUM);
+			track = new Gtk.TreeViewColumn.with_attributes ("#", this.text_renderer, "text", Columns.TRACK);
+			genre = new Gtk.TreeViewColumn.with_attributes ("Genre", this.text_renderer, "text", Columns.GENRE);
+			release_date = new Gtk.TreeViewColumn.with_attributes ("Release Date", this.text_renderer, "text", Columns.RELEASE_DATE);
+			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", this.text_renderer, "text", Columns.DURATION);
+			bitrate = new Gtk.TreeViewColumn.with_attributes ("Bitrate", this.text_renderer, "text", Columns.BITRATE);
+			file_size = new Gtk.TreeViewColumn.with_attributes ("File Size", this.text_renderer, "text", Columns.FILE_SIZE);
 	
 			// Hide the columns we don't need to show to the user.
 			uri.set_visible (false);
@@ -447,8 +441,6 @@ namespace Hum
 				uri_list};
 
 			// Configure some playlist-specific stuff.
-			// FIXME: Set the search column to Columns.TITLE to allow searching within
-			//        the playlist.
 			if (view == this.playlist_view)
 			{
 				// Set up the image in the header of the status_or_add_to_playlist column.
@@ -1332,7 +1324,11 @@ namespace Hum
 		Gtk.init (ref args);
 		
 		var app = new Hum.UserInterface (args);
+
 		app.window.show_all ();
+
+		// Hide the search view at start up.
+		app.view_separator.set_position (0);
 	
 		Gtk.main ();
 		

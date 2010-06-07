@@ -12,7 +12,7 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="has_separator">False</property>
     <property name="program_name">Hum Music Player</property>
-    <property name="copyright" translatable="yes">Copyright &#xA9; 2007-2010 by Brian Davis</property>
+    <property name="copyright" translatable="yes">Copyright &#xA9; 2007-2010 by Brian Davis &amp; Marijana &#352;urkovi&#263;</property>
     <property name="comments" translatable="yes">The low calorie music manager.</property>
     <property name="website">http://github.com/monodeldiablo/hum</property>
     <property name="license" translatable="yes">Hum is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -20,7 +20,8 @@
 Hum is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with Hum; if not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA</property>
-    <property name="authors">Brian Davis &lt;brian.william.davis@gmail.com&gt;</property>
+    <property name="authors">Brian Davis &lt;brian.william.davis@gmail.com&gt;
+Marijana &#352;urkovi&#263; &lt;marijana.surkovic@gmail.com&gt;</property>
     <property name="logo_icon_name">audio-x-generic</property>
     <property name="wrap_license">True</property>
     <child internal-child="vbox">

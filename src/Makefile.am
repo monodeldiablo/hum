@@ -44,6 +44,8 @@ EXTRA_DIST = \
 CLEANFILES = \
 	*.c \
 	*.h \
+	hum_player_vala.stamp \
+	hum_gtk_vala.stamp \
 	$(NULL)
 
 DISTCLEANFILES = \

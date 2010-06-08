@@ -2,6 +2,7 @@ AC_INIT([Hum: The low calorie music manager], [0.3.0], [brian.william.davis@gmai
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([dist-bzip2])
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
@@ -9,8 +10,7 @@ AM_PROG_CC_C_O
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
-AC_PATH_PROG(VALAC, valac, valac)
-AC_SUBST(VALAC)
+AM_PROG_VALAC([0.8.0])
 
 AH_TEMPLATE([GETTEXT_PACKAGE], [Hum: The low calorie music manager])
 GETTEXT_PACKAGE=hum
@@ -41,8 +41,9 @@ PKG_CHECK_MODULES(HUM, glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED 
 AC_SUBST(HUM_CFLAGS)
 AC_SUBST(HUM_LIBS)
 
-AC_CONFIG_FILES([Makefile
-        src/Makefile
+AC_CONFIG_FILES([
+	Makefile
+	src/Makefile
 	data/Makefile
 	po/Makefile.in])
 

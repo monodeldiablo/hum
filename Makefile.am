@@ -8,21 +8,19 @@ SUBDIRS = \
 	po \
 	$(NULL)
 
-humservicedir = ${datadir}/dbus-1/services
-humservice_DATA = \
-	org.washedup.Hum.service \
-	$(NULL)
+humservicedir = $(datadir)/dbus-1/services
+humservice_in_files = org.washedup.Hum.service.in
+humservice_DATA = $(humservice_in_files:.service.in=.service)
 
-org.washedup.Hum.service:
-	cp org.washedup.Hum.service.in org.washedup.Hum.service && \
-	echo "Exec=${bindir}/hum-player" >> org.washedup.Hum.service
+$(humservice_DATA): $(humservice_in_files)
+	@sed -e "s|\@bindir\@|$(bindir)|" $< > $@
 
-humappdir = ${datadir}/applications
+humappdir = $(datadir)/applications
 humapp_DATA = \
 	hum.desktop \
 	$(NULL)
 
-humdocdir = ${docdir}
+humdocdir = $(docdir)
 humdoc_DATA = \
 	ChangeLog \
 	README \
@@ -33,20 +31,23 @@ humdoc_DATA = \
 	$(NULL)
 
 README:
-	cp README.markdown README
+	cp -f README.markdown README
 
 EXTRA_DIST = \
-	org.washedup.Hum.service.in \
-	hum.desktop \
+	$(humservice_in_files) \
+	$(humapp_DATA) \
 	$(humdoc_DATA) \
 	intltool-extract.in \
 	intltool-merge.in \
 	intltool-update.in \
 	$(NULL)
 
+CLEANFILES = \
+	$(humservice_DATA) \
+	$(NULL)
+	
 DISTCLEANFILES = \
-	README
-	org.washedup.Hum.service \
+	README \
 	intltool-extract \
 	intltool-merge \
 	intltool-update \

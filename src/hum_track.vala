@@ -33,6 +33,7 @@ namespace Hum
 		public string release_date { get; set; }
 		public string genre { get; set; }
 		public string file_size { get; set; }
+		public string bitrate { get; set; }
 		//public string codec { get; set; }
 		
 		// The track length is in nanoseconds.

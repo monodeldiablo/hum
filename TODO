@@ -21,8 +21,6 @@ v0.4
 * provide search progress feedback in the background of the search entry
 * implement add icon on search result hover
 * implement tooltips over view cells, so that users can see full titles, etc.
-* implement pinstriping for the views
-* implement a "properties" dialog for selected tracks
 * the properties dialog should allow for tagging and rating tracks
 * more effectively organize the code
   * stick the UI definition, manager, action groups, and instantiation bits

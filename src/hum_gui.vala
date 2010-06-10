@@ -273,43 +273,43 @@ namespace Hum
 		// Connect a bunch of signals to their handlers.
 		private void set_up_signals ()
 		{
-			this.window.destroy += quit;
-			this.quit_action.activate += quit;
+			this.window.destroy.connect (quit);
+			this.quit_action.activate.connect (quit);
 
-			this.about_action.activate += show_about_dialog;
-			this.properties_action.activate += show_properties_dialog;
+			this.about_action.activate.connect (show_about_dialog);
+			this.properties_action.activate.connect (show_properties_dialog);
 
-			this.playlist_select.changed += handle_playlist_select_changed;
-			this.search_select.changed += handle_search_select_changed;
+			this.playlist_select.changed.connect (handle_playlist_select_changed);
+			this.search_select.changed.connect (handle_search_select_changed);
 
-			this.play_button.clicked += handle_play_clicked;
-			this.pause_button.clicked += handle_pause_clicked;
-			this.prev_button.clicked += handle_prev_clicked;
-			this.next_button.clicked += handle_next_clicked;
-			this.repeat_button.clicked += handle_repeat_clicked;
-			this.shuffle_button.clicked += handle_shuffle_clicked;
+			this.play_button.clicked.connect (handle_play_clicked);
+			this.pause_button.clicked.connect (handle_pause_clicked);
+			this.prev_button.clicked.connect (handle_prev_clicked);
+			this.next_button.clicked.connect (handle_next_clicked);
+			this.repeat_button.clicked.connect (handle_repeat_clicked);
+			this.shuffle_button.clicked.connect (handle_shuffle_clicked);
 
-			this.progress_slider.value_changed += handle_slider_moved;
-			this.search_button.clicked += handle_search_requested;
-			this.search_entry.changed += handle_search_requested;
-			this.search_entry.icon_release += handle_search_cleared;
+			this.progress_slider.value_changed.connect (handle_slider_moved);
+			this.search_button.clicked.connect (handle_search_requested);
+			this.search_entry.changed.connect (handle_search_requested);
+			this.search_entry.icon_release.connect (handle_search_cleared);
 
-			this.search_view.row_activated += handle_search_view_selected;
-			this.search_view.drag_data_get += handle_drag_data_get;
-			this.playlist_view.row_activated += handle_playlist_view_selected;
-			this.playlist_view.key_press_event += handle_playlist_view_key_pressed;
-			this.playlist_view.drag_data_received += handle_drag_data_received;
+			this.search_view.row_activated.connect (handle_search_view_selected);
+			this.search_view.drag_data_get.connect (handle_drag_data_get);
+			this.playlist_view.row_activated.connect (handle_playlist_view_selected);
+			this.playlist_view.key_press_event.connect (handle_playlist_view_key_pressed);
+			this.playlist_view.drag_data_received.connect (handle_drag_data_received);
 
 			// Signals from hum-player.
-			this.player.PlayingTrack += handle_playing_track;
-			this.player.PausedPlayback += handle_paused_playback;
-			this.player.StoppedPlayback += handle_stopped_playback;
-			this.player.Seeked += handle_seeked;
-			this.player.RepeatToggled += handle_repeat_toggled;
-			this.player.ShuffleToggled += handle_shuffle_toggled;
-			this.player.TrackAdded += handle_track_added;
-			this.player.TrackRemoved += handle_track_removed;
-			this.player.Exiting += quit;
+			this.player.PlayingTrack.connect (handle_playing_track);
+			this.player.PausedPlayback.connect (handle_paused_playback);
+			this.player.StoppedPlayback.connect (handle_stopped_playback);
+			this.player.Seeked.connect (handle_seeked);
+			this.player.RepeatToggled.connect (handle_repeat_toggled);
+			this.player.ShuffleToggled.connect (handle_shuffle_toggled);
+			this.player.TrackAdded.connect (handle_track_added);
+			this.player.TrackRemoved.connect (handle_track_removed);
+			this.player.Exiting.connect (quit);
 		}
 
 		// Bring the interface up to date with the back end.
@@ -522,7 +522,7 @@ namespace Hum
 			this.about_dialog.version = Config.VERSION;
 
 			// Hook up the "close" action.
-			this.about_dialog.response += handle_about_dialog_response;
+			this.about_dialog.response.connect (handle_about_dialog_response);
 
 			this.about_dialog.show_all ();
 		}
@@ -621,7 +621,7 @@ namespace Hum
 				this.properties_dialog.set_title ("%s Properties".printf ((string) title));
 
 				// Hook up the "close" action.
-				close_action.activate += close_properties_dialog;
+				close_action.activate.connect (close_properties_dialog);
 
 				this.properties_dialog.show_all ();
 			}

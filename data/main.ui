@@ -54,10 +54,132 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkTreeSelection" id="search_select"/>
+  <object class="GtkTreeSelection" id="playlist_select"/>
   <object class="GtkCellRendererText" id="text_renderer">
     <property name="ellipsize">end</property>
   </object>
   <object class="GtkCellRendererPixbuf" id="pixbuf_renderer"/>
+  <object class="GtkImage" id="search_image">
+    <property name="visible">True</property>
+    <property name="icon_name">system-search</property>
+  </object>
+  <object class="GtkImage" id="playback_status_icon">
+    <property name="visible">True</property>
+    <property name="stock">gtk-media-play</property>
+    <property name="icon-size">1</property>
+  </object>
+  <object class="GtkImage" id="add_to_playlist_icon">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
+    <property name="icon-size">1</property>
+  </object>
+  <object class="GtkAction" id="quit_action">
+    <property name="label">Quit</property>
+    <property name="stock_id">gtk-quit</property>
+  </object>
+  <object class="GtkAction" id="properties_action">
+    <property name="label">Properties</property>
+    <property name="stock_id">gtk-properties</property>
+  </object>
+  <object class="GtkAction" id="about_action">
+    <property name="label">About</property>
+    <property name="stock_id">gtk-about</property>
+  </object>
+  <object class="GtkAction" id="play_action">
+    <property name="label">Play</property>
+    <property name="icon_name">media-playback-start</property>
+  </object>
+  <object class="GtkAction" id="pause_action">
+    <property name="label">Pause</property>
+    <property name="icon_name">media-playback-pause</property>
+  </object>
+  <object class="GtkAction" id="stop_action">
+    <property name="label">Stop</property>
+    <property name="icon_name">media-playback-stop</property>
+  </object>
+  <object class="GtkAction" id="next_action">
+    <property name="label">Next</property>
+    <property name="icon_name">media-skip-forward</property>
+  </object>
+  <object class="GtkAction" id="previous_action">
+    <property name="label">Previous</property>
+    <property name="icon_name">media-skip-backward</property>
+  </object>
+  <object class="GtkToggleAction" id="toggle_repeat_action">
+    <property name="label">Repeat</property>
+    <property name="icon_name">media-playlist-repeat</property>
+  </object>
+  <object class="GtkToggleAction" id="toggle_shuffle_action">
+    <property name="label">Shuffle</property>
+    <property name="icon_name">media-playlist-shuffle</property>
+  </object>
+  <object class="GtkAction" id="cut_action">
+    <property name="label">Cut</property>
+    <property name="icon_name">edit-cut</property>
+  </object>
+  <object class="GtkAction" id="copy_action">
+    <property name="label">Copy</property>
+    <property name="icon_name">edit-copy</property>
+  </object>
+  <object class="GtkAction" id="paste_action">
+    <property name="label">Paste</property>
+    <property name="icon_name">edit-paste</property>
+  </object>
+  <object class="GtkAction" id="select_all_action">
+    <property name="label">Select all</property>
+    <property name="icon_name">edit-select-all</property>
+  </object>
+  <object class="GtkAction" id="deselect_all_action">
+    <property name="label">Deselect all</property>
+  </object>
+  <object class="GtkAction" id="add_action">
+    <property name="label">Add to playlist</property>
+    <property name="stock_id">gtk-add</property>
+  </object>
+  <object class="GtkAction" id="remove_action">
+    <property name="label">Remove from playlist</property>
+    <property name="stock_id">gtk-remove</property>
+  </object>
+  <object class="GtkAction" id="clear_action">
+    <property name="label">Clear playlist</property>
+    <property name="stock_id">gtk-clear</property>
+  </object>
+  <object class="GtkAction" id="preferences_action">
+    <property name="label">Preferences</property>
+    <property name="stock_id">gtk-preferences</property>
+  </object>
+  <object class="GtkAction" id="open_action">
+    <property name="label">Open playlist</property>
+    <property name="stock_id">gtk-open</property>
+  </object>
+  <object class="GtkAction" id="save_action">
+    <property name="label">Save playlist</property>
+    <property name="stock_id">gtk-save</property>
+  </object>
+  <object class="GtkAction" id="save_as_action">
+    <property name="label">Save playlist as...</property>
+    <property name="stock_id">gtk-save-as</property>
+  </object>
+
+  <object class="GtkUIManager" id="ui_manager">
+    <child>
+      <object class="GtkActionGroup" id="global_actions">
+        <child>
+          <object class="GtkAction" id="file">
+            <property name="label">_File</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <ui>
+      <menubar name="menubar1">
+        <menu action="file">
+        </menu>
+      </menubar>
+    </ui>
+  </object>
+
   <object class="GtkWindow" id="main_window">
     <property name="title" translatable="yes">Music Player</property>
     <property name="default_width">800</property>
@@ -555,79 +677,4 @@
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="search_image">
-    <property name="visible">True</property>
-    <property name="icon_name">system-search</property>
-  </object>
-  <object class="GtkAction" id="quit_action">
-    <property name="label">Quit</property>
-    <property name="stock_id">gtk-quit</property>
-  </object>
-  <object class="GtkAction" id="properties_action">
-    <property name="label">Properties</property>
-    <property name="stock_id">gtk-properties</property>
-  </object>
-  <object class="GtkAction" id="about_action">
-    <property name="label">About</property>
-    <property name="stock_id">gtk-about</property>
-  </object>
-  <object class="GtkAction" id="cut_action">
-    <property name="label">Cut</property>
-    <property name="stock_id">gtk-cut</property>
-  </object>
-  <object class="GtkAction" id="copy_action">
-    <property name="label">Copy</property>
-    <property name="stock_id">gtk-copy</property>
-  </object>
-  <object class="GtkAction" id="paste_action">
-    <property name="label">Paste</property>
-    <property name="stock_id">gtk-paste</property>
-  </object>
-  <object class="GtkAction" id="select_all_action">
-    <property name="label">Select all</property>
-    <property name="stock_id">gtk-select-all</property>
-  </object>
-  <object class="GtkAction" id="deselect_all_action">
-    <property name="label">Deselect all</property>
-  </object>
-  <object class="GtkAction" id="add_action">
-    <property name="label">Add to playlist</property>
-    <property name="stock_id">gtk-add</property>
-  </object>
-  <object class="GtkAction" id="remove_action">
-    <property name="label">Remove from playlist</property>
-    <property name="stock_id">gtk-remove</property>
-  </object>
-  <object class="GtkAction" id="clear_action">
-    <property name="label">Clear playlist</property>
-    <property name="stock_id">gtk-clear</property>
-  </object>
-  <object class="GtkAction" id="preferences_action">
-    <property name="label">Preferences</property>
-    <property name="stock_id">gtk-preferences</property>
-  </object>
-  <object class="GtkAction" id="open_action">
-    <property name="label">Open playlist</property>
-    <property name="stock_id">gtk-open</property>
-  </object>
-  <object class="GtkAction" id="save_action">
-    <property name="label">Save playlist</property>
-    <property name="stock_id">gtk-save</property>
-  </object>
-  <object class="GtkAction" id="save_as_action">
-    <property name="label">Save playlist as...</property>
-    <property name="stock_id">gtk-save-as</property>
-  </object>
-  <object class="GtkImage" id="playback_status_icon">
-    <property name="visible">True</property>
-    <property name="stock">gtk-media-play</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="add_to_playlist_icon">
-    <property name="visible">True</property>
-    <property name="stock">gtk-add</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkTreeSelection" id="search_select"/>
-  <object class="GtkTreeSelection" id="playlist_select"/>
 </interface>

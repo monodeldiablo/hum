@@ -30,8 +30,40 @@ namespace Hum
 		private DBus.Connection conn;
 		private dynamic DBus.Object tracker;
 
-		private string search_uris_query = "SELECT nie:url(?s) WHERE {?s fts:match \"%s\". ?s a nmm:MusicPiece}";
-		private string get_metadata_query = "SELECT ?title ?track ?genre ?performer ?album ?date ?duration ?bitrate ?size WHERE {?song nie:url \"%s\"; nie:title ?title ; nmm:performer [ nmm:artistName ?performer ] ; nmm:musicAlbum [ nie:title ?album ] . OPTIONAL { ?song nmm:genre ?genre	} . OPTIONAL { ?song nmm:trackNumber ?track } . OPTIONAL { ?song nie:contentCreated ?date } . OPTIONAL { ?song nfo:duration ?duration } . OPTIONAL { ?song nfo:averageBitrate ?bitrate } . OPTIONAL { ?song nfo:fileSize ?size }}";
+		// Searches for a substring in the title, artist and album string.
+		private const string search_tracks_query = """
+			SELECT ?url ?title ?performer ?album ?genre ?track ?duration
+				WHERE {
+				?song a nmm:MusicPiece ;
+				        nie:url ?url ;
+				        nie:title ?title ;
+				        nmm:performer [ nmm:artistName ?performer ] ;
+				        nmm:musicAlbum [ nie:title ?album ] .
+				        OPTIONAL { ?song nmm:genre ?genre } .
+				        OPTIONAL { ?song nmm:trackNumber ?track } .
+				        OPTIONAL { ?song nfo:duration ?duration } .
+				        FILTER ( regex(?title, "%s", "i") ||
+				                 regex(?performer, "%s", "i") ||
+				                 regex(?album, "%s", "i") )
+			} LIMIT 1024
+		""";
+
+		// Searches all metadata that relates to a path of a file.
+		private const string get_metadata_from_uri_query = """
+			SELECT ?title ?track ?genre ?performer ?album ?date ?duration ?bitrate ?size
+				WHERE {
+					?song nie:url "%s" ;
+				        nie:title ?title ;
+				        nmm:performer [ nmm:artistName ?performer ] ;
+				        nmm:musicAlbum [ nie:title ?album ] .
+				        OPTIONAL { ?song nmm:genre ?genre	} .
+				        OPTIONAL { ?song nmm:trackNumber ?track } .
+				        OPTIONAL { ?song nie:contentCreated ?date } .
+				        OPTIONAL { ?song nfo:duration ?duration } .
+				        OPTIONAL { ?song nfo:averageBitrate ?bitrate } .
+				        OPTIONAL { ?song nfo:fileSize ?size }
+				}
+		""";
 		// FIXME: add a tag query, too.
 
 		construct
@@ -57,30 +89,25 @@ namespace Hum
 		// If the user entered a blank string, no results will be returned.
 		// FIXME: Perhaps make this asynchronous, so that the application doesn't
 		//        freeze up for long-running queries.
-		// FIXME: Remove the 512 item limit and introduce a paging system, whereby
+		// FIXME: Remove the 1024 item limit and introduce a paging system, whereby
 		//        the application may page through a result set, fetching only the
 		//        number necessary to fill the search window.
-		public string[] search (string terms)
+		public string[][]? search (string terms)
 		{
-			string[] matches = {};
-
 			debug ("Searching for \"%s\"...", terms);
-			try
-			{
-				string[][] supermatches = this.tracker.SparqlQuery(this.search_uris_query.printf (terms));
 
-				// The results come in as an array of an array of strings. Since each
-				// inner array is of length=1, we convert it to a simple array of strings.
-				for (int i = 0; i < supermatches.length; i++)
-				{
-					matches += supermatches[i][0];
-				}
+			string query = this. search_tracks_query.printf (terms, terms, terms);
+			string[][]? matches = null;
+
+			// FIXME: does this function really throw an exception?
+			try {
+				matches = this.tracker.SparqlQuery(query);
 			}
 			catch (GLib.Error e)
 			{
 				critical ("Error while searching for \"%s\": %s", terms, e.message);
 			}
-	
+
 			debug ("Found %d matches.", matches.length);
 
 			return matches;
@@ -91,9 +118,10 @@ namespace Hum
 		{
 			Hum.Track track = new Track (uri);
 
+			// FIXME: does this function really throw an exception?
 			try
 			{
-				string[][] metadata = this.tracker.SparqlQuery (this.get_metadata_query.printf (uri));
+				string[][] metadata = this.tracker.SparqlQuery (this.get_metadata_from_uri_query.printf (uri));
 
 				// FIXME: This should just throw an exception in the error case.
 				if (metadata.length > 0)

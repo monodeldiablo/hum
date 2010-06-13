@@ -1,8 +1,8 @@
 /*
  * hum_gui.vala
- * 
+ *
  * This file is part of Hum, the low calorie music manager.
- * 
+ *
  * Copyright (C) 2007-2010 by Brian Davis <brian.william.davis@gmail.com>
  *
  * Hum is free software; you can redistribute it and/or modify
@@ -22,11 +22,11 @@
  */
 
 /*
- * FIXME: Then create a UIManager to 
+ * FIXME: Then create a UIManager to
  *        handle accels, action groups, toolbars, menu items, etc. This should
  *        define events and signals and delegate the backend labor to objects
- *        of the defined classes (Track, Playlist, Store, etc.) in the 
- *        accompanying files. 
+ *        of the defined classes (Track, Playlist, Store, etc.) in the
+ *        accompanying files.
  */
 
 // FIXME: Use TreeView.get_visible_range () to minimize the number of items in the search box.
@@ -123,7 +123,7 @@ namespace Hum
 		private DBus.Connection conn;
 		private dynamic DBus.Object player;
 		private Hum.QueryEngine query_engine;
-	
+
 		public UserInterface (string [] args)
 		{
 			try
@@ -356,16 +356,16 @@ namespace Hum
 			store.set_sort_func (Columns.TRACK, (Gtk.TreeIterCompareFunc) track_sort);
 			store.set_sort_func (Columns.GENRE, (Gtk.TreeIterCompareFunc) genre_sort);
 			store.set_sort_func (Columns.DURATION, (Gtk.TreeIterCompareFunc) duration_sort);
-	
+
 			// Search panes should be sorted by default, but not the playlist.
 			if (store == this.search_store)
 			{
 				store.set_sort_column_id (Columns.ARTIST, Gtk.SortType.ASCENDING);
 			}
-	
+
 			// Attach the store to the track list.
 			//view.set_model (store);
-	
+
 			// Set up the display columns.
 			Gtk.TreeViewColumn uri;
 			Gtk.TreeViewColumn status_or_add_to_playlist;
@@ -391,7 +391,7 @@ namespace Hum
 			duration = new Gtk.TreeViewColumn.with_attributes ("Duration", this.text_renderer, "text", Columns.DURATION);
 			bitrate = new Gtk.TreeViewColumn.with_attributes ("Bitrate", this.text_renderer, "text", Columns.BITRATE);
 			file_size = new Gtk.TreeViewColumn.with_attributes ("File Size", this.text_renderer, "text", Columns.FILE_SIZE);
-	
+
 			// Hide the columns we don't need to show to the user.
 			uri.set_visible (false);
 			release_date.set_visible (false);
@@ -468,10 +468,10 @@ namespace Hum
 					{target_list[1]},
 					Gdk.DragAction.MOVE);
 			}
-			
+
 			status_or_add_to_playlist.set_widget (status_or_add_to_playlist_header);
 			status_or_add_to_playlist_header.show ();
-	
+
 			// Define the column properties.
 			status_or_add_to_playlist.set_fixed_width (22); // GConf? (to remember between sessions)
 			title.set_expand (true);
@@ -480,14 +480,14 @@ namespace Hum
 			track.set_fixed_width (48); // GConf?
 			genre.set_expand (true);
 			duration.set_fixed_width (72); // GConf?
-	
+
 			title.set_resizable (true);
 			artist.set_resizable (true);
 			album.set_resizable (true);
 			track.set_resizable (true);
 			genre.set_resizable (true);
 			duration.set_resizable (true);
-	
+
 			// Glue it all together!
 			view.append_column (uri);
 			view.append_column (status_or_add_to_playlist);
@@ -646,8 +646,8 @@ namespace Hum
 		{
 			this.play_button.visible_horizontal = false;
 			this.pause_button.visible_horizontal = true;
-		}	
-		
+		}
+
 		private void show_play_button ()
 		{
 			this.pause_button.visible_horizontal = false;
@@ -657,7 +657,7 @@ namespace Hum
 		private void set_up_playing_state (int position)
 		{
 			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
-			
+
 			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s".printf(track.artist, track.title);
 
@@ -694,7 +694,7 @@ namespace Hum
 		private void set_up_paused_state (int position)
 		{
 			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
-			
+
 			// Set the 'paused' icon in the row of the track that's paused.
 			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
 			this.playlist_store.get_iter (out this.current_iter, path);
@@ -711,7 +711,7 @@ namespace Hum
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(title_markup, artist_markup, album_markup));
 			this.progress_slider.set_range (0.0, (float) track.duration);
 			update_track_progress ();
-			
+
 			// Swap the pause and play buttons.
 			show_play_button ();
 
@@ -812,10 +812,43 @@ namespace Hum
 				-1);
 		}
 
+		private void add_track_to_view_from_array (Gtk.ListStore store, string[] track, int position = -1)
+		{
+			Gtk.TreeIter iter;
+
+			if (position == -1)
+			{
+				store.append (out iter);
+			}
+
+			else
+			{
+				store.insert (out iter, position);
+			}
+
+			// Structure of a Track array:
+			// url, title, artist, album, genre, track, duration
+
+			// Create a MM:SS string for the duration
+			int seconds = track[6].to_int ();
+			int minutes = seconds / 60;
+			string duration = "%d:%02d".printf (minutes, seconds % 60);
+
+			store.set (iter,
+				Columns.URI, track[0],
+				Columns.TITLE, track[1],
+				Columns.ARTIST, track[2],
+				Columns.ALBUM, track[3],
+				Columns.TRACK, track[5],
+				Columns.GENRE, track[4],
+				Columns.DURATION, duration,
+				-1);
+		}
+
 		private void remove_track_from_view (Gtk.ListStore store, int position)
 		{
 			Gtk.TreeIter iter;
-			
+
 			this.playlist_store.get_iter (out iter, new Gtk.TreePath.from_indices (position, -1));
 			string iter_str = this.playlist_store.get_string_from_iter (iter);
 			string current_str = this.playlist_store.get_string_from_iter (current_iter);
@@ -927,12 +960,12 @@ namespace Hum
 			if (position > 0)
 			{
 				int new_position = position - animate_increment;
-				
+
 				if (new_position > 0)
 				{
 					this.view_separator.set_position (new_position);
 				}
-				
+
 				else
 				{
 					this.view_separator.set_position (0);
@@ -974,7 +1007,7 @@ namespace Hum
 			Gtk.TreeIter selection;
 			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
 			int position = -1;
-			
+
 			this.playlist_select.get_selected (out model, out selection);
 
 			if (this.playlist_store.iter_is_valid (selection))
@@ -1190,7 +1223,7 @@ namespace Hum
 		public void handle_repeat_clicked ()
 		{
 			this.player.SetRepeat (this.repeat_button.active);
-			
+
 			// Change the sensitivity of the previous and next buttons at the extremes
 			// of the playlist to reflect the (dis)ability to loop.
 			if (this.playlist_store.iter_is_valid (this.current_iter))
@@ -1241,15 +1274,20 @@ namespace Hum
 			this.view_separator.position = 0;
 
 			string terms = this.search_entry.text;
-			string[] uris = this.query_engine.search (terms);
-
-			if (uris.length > 0)
+			// don't search for very small strings
+			if (terms.length < 3)
 			{
-				double step = 1.0 / (double) uris.length;
+				return;
+			}
+			string[][]? tracks = this.query_engine.search (terms);
 
-				foreach (string uri in uris)
+			if (tracks.length > 0)
+			{
+				double step = 1.0 / (double) tracks.length;
+
+				for (int i = 0; i < tracks.length; i++)
 				{
-					add_track_to_view (this.search_store, uri);
+					add_track_to_view_from_array (this.search_store, tracks[i]);
 					this.search_entry.set_progress_fraction (this.search_entry.get_progress_fraction () + step);
 				}
 
@@ -1296,7 +1334,7 @@ namespace Hum
 		{
 			this.repeat_button.active = do_repeat;
 		}
-		
+
 		public void handle_shuffle_toggled (dynamic DBus.Object player, bool do_shuffle)
 		{
 			this.shuffle_button.active = do_shuffle;
@@ -1318,20 +1356,20 @@ namespace Hum
 			Gtk.main_quit ();
 		}
 	}
-	
+
 	static int main (string[] args)
 	{
 		Gtk.init (ref args);
-		
+
 		var app = new Hum.UserInterface (args);
 
 		app.window.show_all ();
 
 		// Hide the search view at start up.
 		app.view_separator.set_position (0);
-	
+
 		Gtk.main ();
-		
+
 		return 0;
 	}
-}	
+}

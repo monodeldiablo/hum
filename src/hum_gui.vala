@@ -111,6 +111,12 @@ namespace Hum
 		private Gtk.TreeIter current_iter;
 		private double current_progress = 0.0;
 
+		// FIXME: It seems like the behavior here is switched. In other words, when
+		//        a user presses the "page down" key, the step action fires. When a
+		//        user clicks on the slider, the page action fires. Odd.
+		private double slider_page_increment = 10000000000.0; // 10 seconds step
+		private double slider_step_increment = 60000000000.0; // 60 seconds page
+
 		private int update_timeout_id = -1;
 		private int update_period = 500;
 		private int animate_timeout_id = -1;
@@ -289,7 +295,7 @@ namespace Hum
 			this.repeat_button.clicked.connect (handle_repeat_clicked);
 			this.shuffle_button.clicked.connect (handle_shuffle_clicked);
 
-			this.progress_slider.value_changed.connect (handle_slider_moved);
+			this.progress_slider.value_changed.connect (handle_slider_value_changed);
 			this.search_button.clicked.connect (handle_search_requested);
 			this.search_entry.changed.connect (handle_search_requested);
 			this.search_entry.icon_release.connect (handle_search_cleared);
@@ -673,8 +679,11 @@ namespace Hum
 			this.playlist_store.set (this.current_iter,
 				Columns.STATUS_OR_ADD_TO_PLAYLIST, "gtk-media-play", -1);
 
-			// Add a timeout to update the track progress.
+			// Initialize the slider position.
 			this.progress_slider.set_range (0.0, (double) track.duration);
+			this.progress_slider.set_increments (slider_step_increment, slider_page_increment);
+
+			// Add a timeout to update the track progress.
 			this.update_timeout_id = (int) GLib.Timeout.add (this.update_period, update_track_progress);
 
 			// Swap the play and pause buttons.
@@ -710,6 +719,7 @@ namespace Hum
 
 			this.track_label.set_markup("<b>%s</b> by <i>%s</i> from <i>%s</i>".printf(title_markup, artist_markup, album_markup));
 			this.progress_slider.set_range (0.0, (float) track.duration);
+			this.progress_slider.set_increments (slider_step_increment, slider_page_increment);
 			update_track_progress ();
 			
 			// Swap the pause and play buttons.
@@ -745,6 +755,7 @@ namespace Hum
 				GLib.Source.remove ((uint) this.update_timeout_id);
 				this.update_timeout_id = -1;
 			}
+
 			this.progress_slider.set_value (0.0);
 			this.progress_slider.set_range (0.0, 1.0);
 
@@ -1214,14 +1225,14 @@ namespace Hum
 			this.player.SetShuffle (this.shuffle_button.active);
 		}
 
-		public void handle_slider_moved ()
+		public void handle_slider_value_changed ()
 		{
 			double position = this.progress_slider.get_value ();
 
 			// If the slider has moved more than it normally does between updates from
 			// the back end, then the user probably moved it. If they actually moved it
 			// less than this distance, well... they can just wait the extra 500ms.
-			if (position > this.current_progress + this.update_period ||
+			if (position > (this.current_progress + this.update_period) ||
 				position < this.current_progress)
 			{
 				this.player.Seek ((int64) position);

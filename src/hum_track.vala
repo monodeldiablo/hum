@@ -23,21 +23,21 @@
 
 namespace Hum
 {
-	public class Track : GLib.Object
+	public struct Track
 	{
-		public string uri { get; set; }
-		public string title { get; set; }
-		public string artist { get; set; }
-		public string album { get; set; }
-		public int track_number { get; set; }
-		public string release_date { get; set; }
-		public string genre { get; set; }
-		public string file_size { get; set; }
-		public string bitrate { get; set; }
-		//public string codec { get; set; }
-		
+		public string uri;
+		public string title;
+		public string artist;
+		public string album;
+		public int track_number;
+		public string release_date;
+		public string genre;
+		public string file_size;
+		public string bitrate;
+		//public string codec;
+
 		// The track length is in nanoseconds.
-		public int64 duration { get; set; }
+		public int64 duration;
 		
 		// FIXME: Perhaps we should run the file through something else to extract
 		//        the duration, etc.? taglib bindings come with Vala by default, but

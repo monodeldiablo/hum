@@ -44,7 +44,7 @@ namespace Hum
 	{
 		int64 useconds_in_second = 1000000000;
 		int seconds_in_minute = 60;
-		int total_seconds = (int) (usec /  useconds_in_second);
+		int total_seconds = (int) (usec / useconds_in_second);
 		int minutes = total_seconds / seconds_in_minute;
 		int seconds = total_seconds % seconds_in_minute;
 

@@ -106,6 +106,20 @@ namespace Hum
 		// Indicates that a client has requested that the back end shut down.
 		public signal void exiting ();
 
+		// FIXME: Replace with Gst.PlayFlag when available
+		private enum PlayFlag
+		{
+			VIDEO         = (1 << 0),
+			AUDIO         = (1 << 1),
+			TEXT          = (1 << 2),
+			VIS           = (1 << 3),
+			SOFT_VOLUME   = (1 << 4),
+			NATIVE_AUDIO  = (1 << 5),
+			NATIVE_VIDEO  = (1 << 6),
+			DOWNLOAD      = (1 << 7),
+			BUFFERING     = (1 << 8)
+		}
+
 		/************
 		* OPERATION *
 		************/
@@ -128,7 +142,11 @@ namespace Hum
 			debug ("GStreamer library initialized.");
 			
 			// Set up the pipeline for playing.
-			this.pipeline = ElementFactory.make ("playbin", "pipeline");
+			this.pipeline = ElementFactory.make ("playbin2", "pipeline");
+			// Disable video playback, enable streaming.
+			int flags = (PlayFlag.AUDIO | PlayFlag.NATIVE_AUDIO |
+			             PlayFlag.DOWNLOAD | PlayFlag.BUFFERING);
+			pipeline.set ("flags", flags);
 			this.pipeline.set_state (Gst.State.READY);
 			
 			// Set up the bus for messages (such as when a song ends or an error

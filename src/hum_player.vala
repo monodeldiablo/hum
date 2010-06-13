@@ -177,7 +177,7 @@ namespace Hum
 		// The master callback that intercepts messages on the pipeline's bus.
 		private bool parse_message (Gst.Bus bus, Gst.Message message)
 		{
-			switch (message.type)
+			switch (message.type ())
 			{
 				case Gst.MessageType.ERROR:
 					GLib.Error err;
@@ -185,7 +185,7 @@ namespace Hum
 					message.parse_error (out err, out debug);
 					stderr.printf ("Error: %s\n", err.message);
 					break;
-				case MessageType.EOS:
+				case Gst.MessageType.EOS:
 					if (this.current_track < this.playlist.length () - 1 || get_repeat ())
 					{
 						next ();
@@ -198,8 +198,8 @@ namespace Hum
 						stop ();
 					}
 					break;
-				case MessageType.STATE_CHANGED:
-				case MessageType.TAG:
+				case Gst.MessageType.STATE_CHANGED:
+				case Gst.MessageType.TAG:
 				default:
 					break;
 			}

@@ -116,7 +116,7 @@ namespace Hum
 		// FIXME: This seems out of place if others want to use it...
 		public Hum.Track make_track (string uri)
 		{
-			Hum.Track track = new Track (uri);
+			Hum.Track track = Track (uri);
 
 			// FIXME: does this function really throw an exception?
 			try

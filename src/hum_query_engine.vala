@@ -96,7 +96,7 @@ namespace Hum
 		{
 			debug ("Searching for \"%s\"...", terms);
 
-			string query = this. search_tracks_query.printf (terms, terms, terms);
+			string query = this.search_tracks_query.printf (terms, terms, terms);
 			string[][]? matches = null;
 
 			// FIXME: does this function really throw an exception?

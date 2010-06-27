@@ -297,7 +297,7 @@ namespace Hum
 
 			this.progress_slider.value_changed.connect (handle_slider_value_changed);
 			this.search_button.clicked.connect (handle_search_requested);
-			this.search_entry.changed.connect (handle_search_requested);
+			this.search_entry.activate.connect (handle_search_requested);
 			this.search_entry.icon_release.connect (handle_search_cleared);
 
 			this.search_view.row_activated.connect (handle_search_view_selected);

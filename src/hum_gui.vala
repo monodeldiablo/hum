@@ -515,8 +515,7 @@ namespace Hum
 
 		private void handle_about_dialog_response (int response_id)
 		{
-			// NOTE: Apparently, the response_id for the "Close" button is -6...
-			if (response_id == -6)
+			if (response_id == Gtk.ResponseType.CANCEL)
 			{
 				this.about_dialog.close ();
 			}

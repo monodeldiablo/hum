@@ -6,6 +6,7 @@ SUBDIRS = \
 	src \
 	data \
 	po \
+	vapi \
 	$(NULL)
 
 humservicedir = $(datadir)/dbus-1/services

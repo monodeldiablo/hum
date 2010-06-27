@@ -52,7 +52,7 @@ namespace Hum
 	}
 
 	// Sort by title.
-	public int title_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b, void* data)
+	public int title_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b)
 	{
 		string title_a;
 		string title_b;
@@ -64,7 +64,7 @@ namespace Hum
 	}
 
 	// Sort by artist (actually sorts by artist > album > track).
-	public int artist_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b, void* data)
+	public int artist_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b)
 	{
 		string artist_a;
 		string artist_b;
@@ -78,14 +78,14 @@ namespace Hum
 		// Both tracks are by the same artist.
 		if (0 == sort)
 		{
-			return album_sort (model, a, b, data);
+			return album_sort (model, a, b);
 		}
 
 		return sort;
 	}
 
 	// Sort by album (actually sorts by album > track).
-	public int album_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b, void* data)
+	public int album_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b)
 	{
 		string album_a;
 		string album_b;
@@ -99,14 +99,14 @@ namespace Hum
 		// Both tracks are from the same album.
 		if (0 == sort)
 		{
-			return track_sort (model, a, b, data);
+			return track_sort (model, a, b);
 		}
 
 		return sort;
 	}
 
 	// Sort by track.
-	public int track_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b, void* data)
+	public int track_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b)
 	{
 		string track_a;
 		string track_b;
@@ -130,7 +130,7 @@ namespace Hum
 	}
 
 	// Sort by genre (actually sorts by genre > artist > album > track).
-	public int genre_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b, void* data)
+	public int genre_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b)
 	{
 		string genre_a;
 		string genre_b;
@@ -144,14 +144,14 @@ namespace Hum
 		// Both tracks are from the same genre.
 		if (0 == sort)
 		{
-			return artist_sort (model, a, b, data);
+			return artist_sort (model, a, b);
 		}
 
 		return sort;
 	}
 
 	// Sort by duration.
-	public int duration_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b, void* data)
+	public int duration_sort (Gtk.TreeModel model, Gtk.TreeIter a, Gtk.TreeIter b)
 	{
 		string duration_a;
 		string duration_b;

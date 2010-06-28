@@ -130,6 +130,15 @@ namespace Hum
 		private dynamic DBus.Object player;
 		private Hum.QueryEngine query_engine;
 
+		/* DND-related bits. */
+		private const Gtk.TargetEntry[] target_list = {
+			{ "OTHER_ROW", Gtk.TargetFlags.SAME_WIDGET, 0 },
+			{ "SEARCH_RESULT", Gtk.TargetFlags.SAME_APP, 0 },
+			{ "STRING", 0, 1 },
+			{ "text/plain", 0, 1 },
+			{ "text/uri-list", 0, 2 }
+		};
+
 		public UserInterface (string [] args)
 		{
 			try
@@ -356,12 +365,12 @@ namespace Hum
 		private void set_up_list_view (Gtk.ListStore store, Gtk.TreeView view)
 		{
 			// Define sort functions and hook them up.
-			store.set_sort_func (Columns.TITLE, (Gtk.TreeIterCompareFunc) title_sort);
-			store.set_sort_func (Columns.ARTIST, (Gtk.TreeIterCompareFunc) artist_sort);
-			store.set_sort_func (Columns.ALBUM, (Gtk.TreeIterCompareFunc) album_sort);
-			store.set_sort_func (Columns.TRACK, (Gtk.TreeIterCompareFunc) track_sort);
-			store.set_sort_func (Columns.GENRE, (Gtk.TreeIterCompareFunc) genre_sort);
-			store.set_sort_func (Columns.DURATION, (Gtk.TreeIterCompareFunc) duration_sort);
+			store.set_sort_func (Columns.TITLE, title_sort);
+			store.set_sort_func (Columns.ARTIST, artist_sort);
+			store.set_sort_func (Columns.ALBUM, album_sort);
+			store.set_sort_func (Columns.TRACK, track_sort);
+			store.set_sort_func (Columns.GENRE, genre_sort);
+			store.set_sort_func (Columns.DURATION, duration_sort);
 
 			// Search panes should be sorted by default, but not the playlist.
 			if (store == this.search_store)
@@ -416,35 +425,6 @@ namespace Hum
 			duration.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			bitrate.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 			file_size.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
-
-			// Set up DND-related bits.
-			TargetEntry other_row = {
-				"OTHER_ROW",
-				Gtk.TargetFlags.SAME_WIDGET,
-				0};
-			TargetEntry search_entry = {
-				"SEARCH_RESULT",
-				Gtk.TargetFlags.SAME_APP,
-				0};
-			TargetEntry file = {
-				"STRING",
-				0,
-				1};
-			TargetEntry file_alt = {
-				"text/plain",
-				0,
-				1};
-			TargetEntry uri_list = {
-				"text/uri-list",
-				0,
-				2};
-
-			TargetEntry[] target_list = {
-				other_row,
-				search_entry,
-				file,
-				file_alt,
-				uri_list};
 
 			// Configure some playlist-specific stuff.
 			if (view == this.playlist_view)
@@ -535,8 +515,7 @@ namespace Hum
 
 		private void handle_about_dialog_response (int response_id)
 		{
-			// NOTE: Apparently, the response_id for the "Close" button is -6...
-			if (response_id == -6)
+			if (response_id == Gtk.ResponseType.CANCEL)
 			{
 				this.about_dialog.close ();
 			}
@@ -1090,14 +1069,15 @@ namespace Hum
 		// Deal with an DND source data request.
 		// FIXME: The data that this method adds to the selection goes missing later
 		//        on, in the method below.
-		public void handle_drag_data_get (Gdk.DragContext context, Gtk.SelectionData selection_data, uint info, uint time)
+		public void handle_drag_data_get (Gtk.Widget widget, Gdk.DragContext context,
+		                                  Gtk.SelectionData selection_data,
+		                                  uint info, uint time)
 		{
-			Gtk.TreeModel model = (Gtk.TreeModel) this.search_store;
 			GLib.List<Gtk.TreePath> rows;
 			string[] uris;
 			int i = 0;
 
-			rows = this.search_select.get_selected_rows (out model);
+			rows = this.search_select.get_selected_rows (null);
 			uris = new string[this.search_select.count_selected_rows ()];
 
 			foreach (Gtk.TreePath path in rows)
@@ -1107,7 +1087,7 @@ namespace Hum
 
 				this.search_store.get_iter (out iter, path);
 				this.search_store.get_value (iter, Columns.URI, out text);
-				uris[i] = (string) text;
+				uris[i] = text.get_string ();
 				debug ("Setting selection_data to %s", uris[i]);
 
 				++i;
@@ -1117,7 +1097,9 @@ namespace Hum
 		}
 
 		// Handle a DND drop event.
-		public void handle_drag_data_received (Gdk.DragContext context, int x, int y, Gtk.SelectionData selection_data, uint info, uint time)
+		public void handle_drag_data_received (Gdk.DragContext context, int x, int y,
+		                                       Gtk.SelectionData selection_data,
+		                                       uint info, uint time)
 		{
 			Gtk.TreePath path;
 			Gtk.TreeViewDropPosition pos;
@@ -1132,7 +1114,6 @@ namespace Hum
 				this.playlist_store.get_iter (out iter, path);
 				playlist_position = path.to_string ().to_int ();
 			}
-
 			else
 			{
 				playlist_position = -1;
@@ -1150,7 +1131,7 @@ namespace Hum
 					this.playlist_select.get_selected (out model, out selection);
 					this.playlist_store.get_value (selection, Columns.URI, out uri);
 					this.player.RemoveTrack (this.playlist_store.get_string_from_iter (selection).to_int ());
-					this.player.AddTrack ((string) uri, playlist_position);
+					this.player.AddTrack (uri.get_string (), playlist_position);
 
 					// Signal that the drag has successfully completed.
 					Gtk.drag_finish (context, true, false, time);
@@ -1170,7 +1151,7 @@ namespace Hum
 
 						this.search_store.get_iter (out search_iter, search_path);
 						this.search_store.get_value (search_iter, Columns.URI, out uri);
-						this.player.AddTrack ((string) uri, playlist_position);
+						this.player.AddTrack (uri.get_string (), playlist_position);
 					}
 
 					Gtk.drag_finish (context, true, true, time);

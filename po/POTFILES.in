@@ -1,3 +1,6 @@
 [encoding: UTF-8]
 # List of source files which contain translatable strings.
-src/mainwindow.vala
+src/hum_gui.vala
+[type: gettext/glade]data/about.ui
+[type: gettext/glade]data/main.ui
+[type: gettext/glade]data/properties.ui

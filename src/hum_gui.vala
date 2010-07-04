@@ -99,13 +99,12 @@ namespace Hum
 		public Gtk.Entry search_entry;
 		public Gtk.Button search_button;
 		public Gtk.VPaned view_separator;
-		public Gtk.TreeView search_view;
+		public Hum.SearchView search_view;
 		public Gtk.TreeView playlist_view;
 		public Gtk.ListStore search_store;
 		public Gtk.ListStore playlist_store;
 		public Gtk.CellRendererText text_renderer;
 		public Gtk.CellRendererPixbuf pixbuf_renderer;
-		public Gtk.TreeSelection search_select;
 		public Gtk.TreeSelection playlist_select;
 
 		private Gtk.TreeIter current_iter;
@@ -214,7 +213,13 @@ namespace Hum
 			this.playlist_store = (Gtk.ListStore) builder.get_object ("playlist_store");
 			this.search_store = (Gtk.ListStore) builder.get_object ("search_store");
 			this.playlist_view = (Gtk.TreeView) builder.get_object ("playlist_view");
-			this.search_view = (Gtk.TreeView) builder.get_object ("search_view");
+
+			// Setup the search results list view.
+			this.search_view = new Hum.SearchView ();
+			this.search_view.set_model (this.search_store);
+			Gtk.ScrolledWindow scrolledwindow1 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow1");
+			scrolledwindow1.add (this.search_view);
+
 			this.text_renderer = (Gtk.CellRendererText) builder.get_object ("text_renderer");
 			this.pixbuf_renderer = (Gtk.CellRendererPixbuf) builder.get_object ("pixbuf_renderer");
 
@@ -226,8 +231,6 @@ namespace Hum
 			set_up_interface ();
 
 			// Set the selection mode.
-			this.search_select = this.search_view.get_selection ();
-			this.search_select.set_mode (Gtk.SelectionMode.MULTIPLE);
 			this.playlist_select = this.playlist_view.get_selection ();
 			this.playlist_select.set_mode (Gtk.SelectionMode.SINGLE);
 
@@ -295,7 +298,9 @@ namespace Hum
 			this.properties_action.activate.connect (show_properties_dialog);
 
 			this.playlist_select.changed.connect (handle_playlist_select_changed);
-			this.search_select.changed.connect (handle_search_select_changed);
+
+			Gtk.TreeSelection search_select = this.search_view.get_selection ();
+			search_select.changed.connect (handle_search_select_changed);
 
 			this.play_button.clicked.connect (handle_play_clicked);
 			this.pause_button.clicked.connect (handle_pause_clicked);
@@ -310,7 +315,6 @@ namespace Hum
 			this.search_entry.icon_release.connect (handle_search_cleared);
 
 			this.search_view.row_activated.connect (handle_search_view_selected);
-			this.search_view.drag_data_get.connect (handle_drag_data_get);
 			this.playlist_view.row_activated.connect (handle_playlist_view_selected);
 			this.playlist_view.key_press_event.connect (handle_playlist_view_key_pressed);
 			this.playlist_view.drag_data_received.connect (handle_drag_data_received);
@@ -1066,36 +1070,6 @@ namespace Hum
 			return true;
 		}
 
-		// Deal with an DND source data request.
-		// FIXME: The data that this method adds to the selection goes missing later
-		//        on, in the method below.
-		public void handle_drag_data_get (Gtk.Widget widget, Gdk.DragContext context,
-		                                  Gtk.SelectionData selection_data,
-		                                  uint info, uint time)
-		{
-			GLib.List<Gtk.TreePath> rows;
-			string[] uris;
-			int i = 0;
-
-			rows = this.search_select.get_selected_rows (null);
-			uris = new string[this.search_select.count_selected_rows ()];
-
-			foreach (Gtk.TreePath path in rows)
-			{
-				Gtk.TreeIter iter;
-				GLib.Value text;
-
-				this.search_store.get_iter (out iter, path);
-				this.search_store.get_value (iter, Columns.URI, out text);
-				uris[i] = text.get_string ();
-				debug ("Setting selection_data to %s", uris[i]);
-
-				++i;
-			}
-
-			selection_data.set_uris (uris);
-		}
-
 		// Handle a DND drop event.
 		public void handle_drag_data_received (Gdk.DragContext context, int x, int y,
 		                                       Gtk.SelectionData selection_data,
@@ -1136,21 +1110,21 @@ namespace Hum
 					// Signal that the drag has successfully completed.
 					Gtk.drag_finish (context, true, false, time);
 					break;
-				// FIXME: The URIs that I stuck into selection_data in
-				//        handle_drag_data_get() are missing! Where did they go? No clue.
+				// Drag from the the SearchView to the Playlist.
 				case "SEARCH_RESULT":
-					Gtk.TreeModel search_model = (Gtk.TreeModel) this.search_store;
 					GLib.List<Gtk.TreePath> rows;
+					Gtk.TreeModel search_model;
+					Gtk.TreeSelection search_select = this.search_view.get_selection ();
 
-					rows = this.search_select.get_selected_rows (out search_model);
+					rows = search_select.get_selected_rows (out search_model);
 
 					foreach (Gtk.TreePath search_path in rows)
 					{
 						Gtk.TreeIter search_iter;
 						GLib.Value uri;
 
-						this.search_store.get_iter (out search_iter, search_path);
-						this.search_store.get_value (search_iter, Columns.URI, out uri);
+						search_model.get_iter (out search_iter, search_path);
+						search_model.get_value (search_iter, Columns.URI, out uri);
 						this.player.AddTrack (uri.get_string (), playlist_position);
 					}
 

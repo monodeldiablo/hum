@@ -24,6 +24,8 @@ hum_gtk_SOURCES = \
 	hum_track.vala \
 	hum_query_engine.vala \
 	hum_gui.vala \
+	hum_multi_selection_tree_view.vala \
+	hum_search_view.vala \
 	$(NULL)
 
 hum_gtk_LDADD = \

@@ -203,8 +203,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="open_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">open_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -212,8 +212,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="save_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">save_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -221,8 +221,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="save_as_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">save_as_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -235,8 +235,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="properties_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">properties_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -249,8 +249,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="quit_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">quit_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -270,8 +270,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="cut_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">cut_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -279,8 +279,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="copy_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">copy_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -288,8 +288,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="paste_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">paste_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -302,8 +302,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="select_all_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">select_all_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -311,8 +311,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="deselect_all_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">deselect_all_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -325,8 +325,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="add_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">add_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -334,8 +334,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="remove_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">remove_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -343,8 +343,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="clear_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">clear_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -357,8 +357,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="preferences_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">preferences_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -397,8 +397,8 @@
                     <child>
                       <object class="GtkImageMenuItem" id="about_menu_item">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">about_action</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -618,16 +618,7 @@
                 <property name="hscrollbar_policy">never</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <child>
-                  <object class="GtkTreeView" id="search_view">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="model">search_store</property>
-                    <property name="headers_clickable">False</property>
-                    <property name="rules_hint">True</property>
-                    <property name="search_column">2</property>
-                    <property name="fixed_height_mode">True</property>
-                    <property name="show_expanders">False</property>
-                  </object>
+                  <placeholder/>
                 </child>
               </object>
               <packing>

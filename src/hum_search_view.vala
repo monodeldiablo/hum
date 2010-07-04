@@ -27,6 +27,11 @@ namespace Hum
   {
     public SearchView ()
     {
+      /* Properties */
+      this.set_fixed_height_mode (true);
+      this.set_enable_search (false);
+
+      /* Signals */
       this.drag_data_get.connect (on_drag_data_get);
     }
 

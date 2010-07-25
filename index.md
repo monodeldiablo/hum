@@ -31,7 +31,7 @@ enjoy listening to her Benny Goodman on?
 
 Dependencies
 ------------
- * Vala 0.7.6 or better (if you feel like building the source)
+ * Vala 0.9.1 or better (if you feel like building the source)
  * Tracker >= 0.8.0 (as of 2010-06-04, Hum is no longer compatible with earlier
  versions of Tracker)
  * GTK 2.16 or better
@@ -78,7 +78,7 @@ You should have received a copy of the GNU General Public License along with Hum
 
 Authors
 -------
-Brian Davis (brian.william.davis (at) gmail.com) & Marijana Šurković (marijana.surkovic (at) gmail.com)
+Brian Davis (brian.william.davis (at) gmail.com), Marijana Šurković (marijana.surkovic (at) gmail.com), and Simon Wenner
 
 Contact
 -------

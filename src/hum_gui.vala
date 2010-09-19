@@ -943,7 +943,6 @@ namespace Hum
 				this.view_separator.position += animate_increment;
 				return true;
 			}
-
 			else
 			{
 				return false;
@@ -1165,8 +1164,10 @@ namespace Hum
 				for (int i = 0; i < tracks.length; i++)
 				{
 					add_track_to_view_from_array (this.search_store, tracks[i]);
+					// FIXME: The progress is hardly visible since only one fast query is used.
 					this.search_entry.set_progress_fraction (this.search_entry.get_progress_fraction () + step);
 				}
+				this.search_entry.set_progress_fraction (0.0);
 
 				this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, expand_search_pane);
 			}

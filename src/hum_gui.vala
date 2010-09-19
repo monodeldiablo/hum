@@ -100,12 +100,11 @@ namespace Hum
 		public Gtk.Button search_button;
 		public Gtk.VPaned view_separator;
 		public Hum.SearchView search_view;
-		public Gtk.TreeView playlist_view;
+		public Hum.PlayListView playlist_view;
 		public Gtk.ListStore search_store;
 		public Gtk.ListStore playlist_store;
 		public Gtk.CellRendererText text_renderer;
 		public Gtk.CellRendererPixbuf pixbuf_renderer;
-		public Gtk.TreeSelection playlist_select;
 
 		private Gtk.TreeIter current_iter;
 		private double current_progress = 0.0;
@@ -212,7 +211,6 @@ namespace Hum
 
 			this.playlist_store = (Gtk.ListStore) builder.get_object ("playlist_store");
 			this.search_store = (Gtk.ListStore) builder.get_object ("search_store");
-			this.playlist_view = (Gtk.TreeView) builder.get_object ("playlist_view");
 
 			// Setup the search results list view.
 			this.search_view = new Hum.SearchView ();
@@ -220,19 +218,23 @@ namespace Hum
 			Gtk.ScrolledWindow scrolledwindow1 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow1");
 			scrolledwindow1.add (this.search_view);
 
+			// Setup the play list view.
+			// FIXME: The playlist should not need to know the Player class.
+			this.playlist_view = new PlayListView (this.player, this.search_view);
+			this.playlist_view.set_model (this.playlist_store);
+			Gtk.ScrolledWindow scrolledwindow2 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow2");
+			scrolledwindow2.add (this.playlist_view);
+
 			this.text_renderer = (Gtk.CellRendererText) builder.get_object ("text_renderer");
 			this.pixbuf_renderer = (Gtk.CellRendererPixbuf) builder.get_object ("pixbuf_renderer");
 
 			// Connect the stores to their corresponding views.
+			// FIXME: should be moved into the SearchView and PlayListView classes.
 			set_up_list_view (this.playlist_store, this.playlist_view);
 			set_up_list_view (this.search_store, this.search_view);
 
 			// Update the interface to reflect the backend.
 			set_up_interface ();
-
-			// Set the selection mode.
-			this.playlist_select = this.playlist_view.get_selection ();
-			this.playlist_select.set_mode (Gtk.SelectionMode.SINGLE);
 
 			// Initialize the actions and action groups.
 			set_up_actions ();
@@ -297,7 +299,8 @@ namespace Hum
 			this.about_action.activate.connect (show_about_dialog);
 			this.properties_action.activate.connect (show_properties_dialog);
 
-			this.playlist_select.changed.connect (handle_playlist_select_changed);
+			Gtk.TreeSelection playlist_select = this.playlist_view.get_selection ();
+			playlist_select.changed.connect (handle_playlist_select_changed);
 
 			Gtk.TreeSelection search_select = this.search_view.get_selection ();
 			search_select.changed.connect (handle_search_select_changed);
@@ -317,7 +320,6 @@ namespace Hum
 			this.search_view.row_activated.connect (handle_search_view_selected);
 			this.playlist_view.row_activated.connect (handle_playlist_view_selected);
 			this.playlist_view.key_press_event.connect (handle_playlist_view_key_pressed);
-			this.playlist_view.drag_data_received.connect (handle_drag_data_received);
 
 			// Signals from hum-player.
 			this.player.PlayingTrack.connect (handle_playing_track);
@@ -530,7 +532,8 @@ namespace Hum
 			// Verify that a track is selected and, if so, fill in the track metadata.
 			Gtk.TreeIter selection;
 			Gtk.TreeModel model;
-			bool is_selected = this.playlist_select.get_selected (out model, out selection);
+			Gtk.TreeSelection playlist_select = this.playlist_view.get_selection ();
+			bool is_selected = playlist_select.get_selected (out model, out selection);
 			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
 
 			if (is_selected && selection_is_valid)
@@ -756,7 +759,8 @@ namespace Hum
 		{
 			Gtk.TreeIter selection;
 			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
-			bool is_selected = this.playlist_select.get_selected (out model, out selection);
+			Gtk.TreeSelection playlist_select = this.playlist_view.get_selection ();
+			bool is_selected = playlist_select.get_selected (out model, out selection);
 			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
 			string status = this.player.GetPlaybackStatus ();
 			int track = -1;
@@ -786,7 +790,6 @@ namespace Hum
 			{
 				store.append (out iter);
 			}
-
 			else
 			{
 				store.insert (out iter, position);
@@ -959,7 +962,6 @@ namespace Hum
 				{
 					this.view_separator.set_position (new_position);
 				}
-
 				else
 				{
 					this.view_separator.set_position (0);
@@ -1000,9 +1002,10 @@ namespace Hum
 		{
 			Gtk.TreeIter selection;
 			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
+			Gtk.TreeSelection playlist_select = this.playlist_view.get_selection ();
 			int position = -1;
 
-			this.playlist_select.get_selected (out model, out selection);
+			playlist_select.get_selected (out model, out selection);
 
 			if (this.playlist_store.iter_is_valid (selection))
 			{
@@ -1051,7 +1054,7 @@ namespace Hum
 
 					int new_position = (position - 1) % this.playlist_store.length;
 					Gtk.TreePath new_path = new Gtk.TreePath.from_indices (new_position, -1);
-					this.playlist_select.select_path (new_path);
+					playlist_select.select_path (new_path);
 					break;
 
 				// "down" or "n" was pressed
@@ -1059,7 +1062,7 @@ namespace Hum
 				case 57:
 					int new_position = (position + 1) % this.playlist_store.length;
 					Gtk.TreePath new_path = new Gtk.TreePath.from_indices (new_position, -1);
-					this.playlist_select.select_path (new_path);
+					playlist_select.select_path (new_path);
 					break;
 
 				default:
@@ -1068,98 +1071,6 @@ namespace Hum
 			}
 
 			return true;
-		}
-
-		// Handle a DND drop event.
-		public void handle_drag_data_received (Gdk.DragContext context, int x, int y,
-		                                       Gtk.SelectionData selection_data,
-		                                       uint info, uint time)
-		{
-			Gtk.TreePath path;
-			Gtk.TreeViewDropPosition pos;
-			Gtk.TreeIter iter;
-			Gtk.TreeModel model = (Gtk.TreeModel) this.playlist_store;
-			int playlist_position;
-
-			this.playlist_view.get_dest_row_at_pos (x, y, out path, out pos);
-
-			if (path != null)
-			{
-				this.playlist_store.get_iter (out iter, path);
-				playlist_position = path.to_string ().to_int ();
-			}
-			else
-			{
-				playlist_position = -1;
-			}
-
-			debug ("An item was dragged from %s", selection_data.target.name ());
-
-			// If this was dragged from within the playlist view, treat it as a move.
-			switch (selection_data.target.name ())
-			{
-				case "OTHER_ROW":
-					Gtk.TreeIter selection;
-					GLib.Value uri;
-
-					this.playlist_select.get_selected (out model, out selection);
-					this.playlist_store.get_value (selection, Columns.URI, out uri);
-					this.player.RemoveTrack (this.playlist_store.get_string_from_iter (selection).to_int ());
-					this.player.AddTrack (uri.get_string (), playlist_position);
-
-					// Signal that the drag has successfully completed.
-					Gtk.drag_finish (context, true, false, time);
-					break;
-				// Drag from the the SearchView to the Playlist.
-				case "SEARCH_RESULT":
-					GLib.List<Gtk.TreePath> rows;
-					Gtk.TreeModel search_model;
-					Gtk.TreeSelection search_select = this.search_view.get_selection ();
-
-					rows = search_select.get_selected_rows (out search_model);
-
-					foreach (Gtk.TreePath search_path in rows)
-					{
-						Gtk.TreeIter search_iter;
-						GLib.Value uri;
-
-						search_model.get_iter (out search_iter, search_path);
-						search_model.get_value (search_iter, Columns.URI, out uri);
-						this.player.AddTrack (uri.get_string (), playlist_position);
-					}
-
-					Gtk.drag_finish (context, true, true, time);
-					break;
-				case "text/uri-list":
-					string[] uris = selection_data.get_uris ();
-
-					foreach (string uri in uris)
-					{
-						this.player.AddTrack (uri, playlist_position);
-					}
-
-					Gtk.drag_finish (context, true, true, time);
-					break;
-				case "STRING":
-				case "text/plain":
-					string uri = (string) selection_data.data;
-
-					// NOTE: Dragging from the desktop appends a newline to the end of the
-					//       uri, which confuses the method AddTrack method.
-					uri = uri.strip ();
-
-					debug ("Adding '%s' to the playlist at position %d", uri, playlist_position);
-					this.player.AddTrack (uri, playlist_position);
-
-					Gtk.drag_finish (context, true, true, time);
-					break;
-				default:
-					debug ("Hum doesn't know how to handle data from that source!");
-
-					// Signal that the drag has unsuccessfully completed.
-					Gtk.drag_finish (context, false, true, time);
-					break;
-			}
 		}
 
 		// Pass along the command to play the current track or resume play.

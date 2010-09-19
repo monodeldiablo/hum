@@ -3,6 +3,7 @@
 *.o
 *.stamp
 .deps
+*~
 
 Makefile
 Makefile.in

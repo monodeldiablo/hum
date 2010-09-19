@@ -34,7 +34,7 @@ namespace Hum
 		private const string search_tracks_query = """
 			SELECT ?url ?title ?performer ?album ?genre ?track ?duration
 				WHERE {
-				?song a nmm:MusicPiece ;
+				   ?song a nmm:MusicPiece ;
 				        nie:url ?url ;
 				        nie:title ?title ;
 				        nmm:performer [ nmm:artistName ?performer ] ;
@@ -52,7 +52,8 @@ namespace Hum
 		private const string get_metadata_from_uri_query = """
 			SELECT ?title ?track ?genre ?performer ?album ?date ?duration ?bitrate ?size
 				WHERE {
-					?song nie:url "%s" ;
+				   ?song a nmm:MusicPiece ;
+				        nie:url "%s" ;
 				        nie:title ?title ;
 				        nmm:performer [ nmm:artistName ?performer ] ;
 				        nmm:musicAlbum [ nie:title ?album ] .
@@ -62,7 +63,7 @@ namespace Hum
 				        OPTIONAL { ?song nfo:duration ?duration } .
 				        OPTIONAL { ?song nfo:averageBitrate ?bitrate } .
 				        OPTIONAL { ?song nfo:fileSize ?size }
-				}
+				} LIMIT 1
 		""";
 		// FIXME: add a tag query, too.
 
@@ -121,6 +122,7 @@ namespace Hum
 			// FIXME: does this function really throw an exception?
 			try
 			{
+				// FIXME: Check if the data is valid
 				string[][] metadata = this.tracker.SparqlQuery (this.get_metadata_from_uri_query.printf (uri));
 
 				// FIXME: This should just throw an exception in the error case.

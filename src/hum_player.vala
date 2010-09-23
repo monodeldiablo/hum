@@ -195,7 +195,7 @@ namespace Hum
 		// The master callback that intercepts messages on the pipeline's bus.
 		private bool parse_message (Gst.Bus bus, Gst.Message message)
 		{
-			switch (message.type ())
+			switch (message.type)
 			{
 				case Gst.MessageType.ERROR:
 					GLib.Error err;

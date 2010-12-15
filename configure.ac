@@ -26,8 +26,6 @@ AM_GNU_GETTEXT([external])
 AC_SUBST([GETTEXT_PACKAGE],[hum])
 AC_DEFINE([GETTEXT_PACKAGE],[PACKAGE_TARNAME],[Define to the gettext package name])
 
-AM_GLIB_GNU_GETTEXT
-
 # Set up prefix-relative directories
 if test "x${prefix}" = "xNONE"; then
   PREFIX="${ac_default_prefix}"

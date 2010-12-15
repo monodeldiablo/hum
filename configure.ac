@@ -1,23 +1,32 @@
-AC_INIT([Hum: The low calorie music manager], [0.3.0], [brian.william.davis@gmail.com], [hum], [http://github.com/monodeldiablo/hum])
-AC_CONFIG_SRCDIR([Makefile.am])
-AC_CONFIG_HEADERS(config.h)
-AM_INIT_AUTOMAKE([dist-bzip2])
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-AM_MAINTAINER_MODE
+AC_INIT([Hum: The low calorie music manager],[0.3.0],[brian.william.davis@gmail.com],[hum],[http://github.com/monodeldiablo/hum])
 
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([Makefile.am])
+AC_CONFIG_MACRO_DIR([m4])
+
+AM_INIT_AUTOMAKE([1.10 dist-bzip2])
+AM_MAINTAINER_MODE([enable])
+
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+
+# Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
-
 AM_PROG_VALAC([0.9.1])
 
-AH_TEMPLATE([GETTEXT_PACKAGE], [Hum: The low calorie music manager])
-GETTEXT_PACKAGE=hum
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE")
-AC_SUBST(GETTEXT_PACKAGE)
+# Initialize libtool
+LT_INIT([disable-static])
+
+# i18n stuff
+IT_PROG_INTLTOOL([0.40.0])
+
+AM_GNU_GETTEXT_VERSION([0.17])
+AM_GNU_GETTEXT([external])
+
+AC_SUBST([GETTEXT_PACKAGE],[hum])
+AC_DEFINE([GETTEXT_PACKAGE],[PACKAGE_TARNAME],[Define to the gettext package name])
+
 AM_GLIB_GNU_GETTEXT
-IT_PROG_INTLTOOL([0.35.0])
 
 # Set up prefix-relative directories
 if test "x${prefix}" = "xNONE"; then

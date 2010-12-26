@@ -21,7 +21,9 @@ Hum is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 
 You should have received a copy of the GNU General Public License along with Hum; if not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA</property>
     <property name="authors">Brian Davis &lt;brian.william.davis@gmail.com&gt;
-Marijana &#352;urkovi&#263; &lt;marijana.surkovic@gmail.com&gt;</property>
+Marijana &#352;urkovi&#263; &lt;marijana.surkovic@gmail.com&gt;
+Simon Wenner &lt;simon@wenner.ch&gt;
+Javier Jard&#243;n &lt;jjardon@gnome.org&gt;</property>
     <property name="logo_icon_name">audio-x-generic</property>
     <property name="wrap_license">True</property>
     <child internal-child="vbox">

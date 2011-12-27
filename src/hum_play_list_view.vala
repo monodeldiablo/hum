@@ -21,15 +21,17 @@
  * Boston, MA  02110-1301  USA
  */
 
+using Hum;
+
 namespace Hum
 {
   public class PlayListView : MultiSelectionTreeView
   {
     // FIXME: The playlist should not need to know the Player. Remove it.
-    private dynamic DBus.Object player;
+    private Hum.Player player;
     private Hum.SearchView search_view;
 
-    public PlayListView (DBus.Object player, Hum.SearchView search_view)
+    public PlayListView (Hum.Player player, Hum.SearchView search_view)
     {
       this.player = player;
       this.search_view = search_view;
@@ -67,7 +69,7 @@ namespace Hum
       if (path != null)
       {
         model.get_iter (out iter, path);
-        playlist_position = path.to_string ().to_int ();
+        playlist_position = int.parse (path.to_string ());
       }
       else
       {
@@ -91,8 +93,8 @@ namespace Hum
           {
             model.get_iter (out selection_iter, selection_path);
             model.get_value (selection_iter, Columns.URI, out uri);
-            this.player.AddTrack (uri.get_string (), playlist_position);
-            this.player.RemoveTrack (model.get_string_from_iter (selection_iter).to_int ());
+            this.player.add_track (uri.get_string (), playlist_position);
+            this.player.remove_track (int.parse (model.get_string_from_iter (selection_iter)));
           }
 
           // Signal that the drag has successfully completed.
@@ -113,7 +115,7 @@ namespace Hum
 
               search_model.get_iter (out search_iter, search_path);
               search_model.get_value (search_iter, Columns.URI, out uri);
-              this.player.AddTrack (uri.get_string (), playlist_position);
+              this.player.add_track (uri.get_string (), playlist_position);
           }
 
           // Signal that the drag has successfully completed.
@@ -125,7 +127,7 @@ namespace Hum
           foreach (string uri in uris)
           {
               debug ("Adding '%s' to the playlist at position %d", uri, playlist_position);
-              this.player.AddTrack (uri, playlist_position);
+              this.player.add_track (uri, playlist_position);
           }
 
           // Signal that the drag has successfully completed.
@@ -141,7 +143,7 @@ namespace Hum
           {
               if (uri != "") {
                   debug ("Adding '%s' to the playlist at position %d", uri, playlist_position);
-                  this.player.AddTrack (uri, playlist_position);
+                  this.player.add_track (uri, playlist_position);
               }
           }
 

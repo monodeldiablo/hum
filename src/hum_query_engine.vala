@@ -21,14 +21,14 @@
  * Boston, MA  02110-1301  USA
  */
 
-using DBus;
+using Hum;
+using Tracker;
 
 namespace Hum
 {
 	public class QueryEngine: GLib.Object
 	{
-		private DBus.Connection conn;
-		private dynamic DBus.Object tracker;
+		private Tracker.Sparql.Connection tracker;
 
 		// Searches for a substring in the title, artist and album string.
 		private const string search_tracks_query = """
@@ -72,15 +72,16 @@ namespace Hum
 			debug ("Connecting to Tracker...");
 			try
 			{
-				conn = DBus.Bus.get (DBus.BusType.SESSION);
-
-				this.tracker = conn.get_object ("org.freedesktop.Tracker1",
+				this.tracker = Tracker.Sparql.Connection.get ();
+				/*
+				this.tracker = GLib.Bus.get_proxy_sync (GLib.BusType.SESSION,
 					"/org/freedesktop/Tracker1/Resources",
 					"org.freedesktop.Tracker1.Resources");
+				*/
 
 				debug ("Connected to Tracker!");
 			}
-			catch (DBus.Error e)
+			catch (GLib.IOError e)
 			{
 				critical ("Error connecting to Tracker: %s", e.message);
 			}
@@ -93,25 +94,33 @@ namespace Hum
 		// FIXME: Remove the 1024 item limit and introduce a paging system, whereby
 		//        the application may page through a result set, fetching only the
 		//        number necessary to fill the search window.
-		public string[][]? search (string terms)
+		public string[,]? search (string terms)
 		{
 			debug ("Searching for \"%s\"...", terms);
 
 			string query = this.search_tracks_query.printf (terms, terms, terms);
-			string[][]? matches = null;
+			string[,]? results = null;
+			Tracker.Sparql.Cursor matches = null;
 
-			// FIXME: does this function really throw an exception?
-			try {
-				matches = this.tracker.SparqlQuery(query);
+			try
+			{
+				matches = this.tracker.query (query);
+				results = {};
+
+				do
+				{
+					for (int i = 0; i < matches.n_columns; i++)
+					{
+						results += matches.get_string (i);
+					}
+				} while (matches.next ());
 			}
 			catch (GLib.Error e)
 			{
 				critical ("Error while searching for \"%s\": %s", terms, e.message);
 			}
 
-			debug ("Found %d matches.", matches.length);
-
-			return matches;
+			return results;
 		}
 
 		// FIXME: This seems out of place if others want to use it...
@@ -123,32 +132,32 @@ namespace Hum
 			try
 			{
 				// FIXME: Check if the data is valid
-				string[][] metadata = this.tracker.SparqlQuery (this.get_metadata_from_uri_query.printf (uri));
+				Tracker.Sparql.Cursor metadata = this.tracker.query (this.get_metadata_from_uri_query.printf (uri));
 
 				// FIXME: This should just throw an exception in the error case.
-				if (metadata.length > 0)
+				do
 				{
 					int64 useconds_in_second = 1000000000;
 
-					track.title = metadata[0][0];
-					track.track_number = metadata[0][1].to_int ();
-					track.genre = metadata[0][2];
+					track.title = metadata.get_string (0);
+					track.track_number = (int) metadata.get_integer (1);
+					track.genre = metadata.get_string (2);
 
-					if (metadata[0][3] != "")
+					if (metadata.get_string (3) != "")
 					{
-						track.artist = metadata[0][3];
+						track.artist = metadata.get_string (3);
 					}
 
-					if (metadata[0][4] != "")
+					if (metadata.get_string (4) != "")
 					{
-						track.album = metadata[0][4];
+						track.album = metadata.get_string (4);
 					}
 
-					track.release_date = metadata[0][5];
-					track.duration = metadata[0][6].to_int64 () * useconds_in_second;
-					track.bitrate = metadata[0][7];
-					track.file_size = metadata[0][8];
-				}
+					track.release_date = metadata.get_string (5);
+					track.duration = ((int64) metadata.get_integer (6)) * useconds_in_second;
+					track.bitrate = metadata.get_string (7);
+					track.file_size = metadata.get_string (8);
+				} while (metadata.next ());
 			}
 			catch (GLib.Error e)
 			{

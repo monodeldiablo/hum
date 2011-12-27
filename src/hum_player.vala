@@ -22,8 +22,8 @@
  */
 
 using GLib;
-using DBus;
 using Gst;
+using Hum;
 
 // FIXME: We'll start w/Gst.Playbin, but for playlist support we should move to
 //        Gst.Decodebin in the future (cross-fading, etc.).
@@ -34,7 +34,7 @@ namespace Hum
 {
 	// This is the player backend.
 	[DBus (name = "org.washedup.Hum")]
-	public class Player : GLib.Object
+	public class PlayerService : GLib.Object
 	{
 		// The application main loop.
 		private GLib.MainLoop mainloop;
@@ -125,7 +125,7 @@ namespace Hum
 		************/
 
 		// The constructor...
-		Player (string[] args)
+		PlayerService (string[] args)
 		{
 			this.mainloop = new GLib.MainLoop (null, false);
 			
@@ -173,9 +173,9 @@ namespace Hum
 		}
 
 		// Tear down the application.
-		public void quit ()
+		public void quit (string reason = "Normal shutdown.")
 		{
-			debug ("Quitting...");
+			debug ("Quitting: " + reason);
 
 			// Stop playback (clients that are playing sometimes ignore the "exiting"
 			// signal for some silly reason).
@@ -190,6 +190,33 @@ namespace Hum
 			// Actually, finally, really go away.
 			debug ("Goodbye!");
 			this.mainloop.quit ();
+		}
+
+		// Register Hum as a DBus service.
+		private void register_dbus_service ()
+		{
+			GLib.Bus.own_name (GLib.BusType.SESSION,
+				"org.washedup.Hum",
+				GLib.BusNameOwnerFlags.NONE,
+				on_bus_acquired,
+				() => {},
+				() => quit ("Unable to acquire name with DBus."));
+		}
+
+		private void on_bus_acquired (DBusConnection conn)
+		{
+			try
+			{
+				conn.register_object ("/org/washedup/Hum", this);
+				debug ("Successfully registered DBus service!");
+
+				run ();
+			}
+
+			catch (IOError e)
+			{
+				quit ("Unable to register service with DBus.");
+			}
 		}
 
 		// The master callback that intercepts messages on the pipeline's bus.
@@ -223,40 +250,6 @@ namespace Hum
 			}
 
 			return true;
-		}
-
-		// Register Hum as a DBus service.
-		private void register_dbus_service ()
-		{
-			try
-			{
-				var conn = DBus.Bus.get (DBus.BusType.SESSION);
-
-				dynamic DBus.Object dbus = conn.get_object ("org.freedesktop.DBus",
-					"/org/freedesktop/DBus",
-					"org.freedesktop.DBus");
-
-				uint request_name_result = dbus.request_name ("org.washedup.Hum", (uint) 0);
-
-				if (request_name_result == DBus.RequestNameReply.PRIMARY_OWNER)
-				{
-					conn.register_object ("/org/washedup/Hum", this);
-					
-					debug ("Successfully registered DBus service!");
-					
-					run ();
-				}
-
-				else
-				{
-					quit ();
-				}
-			}
-
-			catch (DBus.Error e)
-			{
-				stderr.printf ("Shit! %s\n", e.message);
-			}
 		}
 
 		/********
@@ -609,7 +602,7 @@ namespace Hum
 		
 		static int main (string[] args)
 		{
-			new Player(args);
+			new PlayerService (args);
 
 			return 0;
 		}

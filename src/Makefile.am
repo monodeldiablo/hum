@@ -8,8 +8,10 @@ AM_CPPFLAGS = \
 AM_VALAFLAGS = \
 	--vapidir $(top_srcdir)/vapi \
 	--pkg config \
+	--pkg hum \
+	--pkg tracker-sparql-0.10 \
 	--pkg gstreamer-0.10 \
-	--pkg dbus-glib-1 \
+	--pkg gio-2.0 \
 	--pkg gtk+-2.0 \
 	--thread \
 	$(NULL)

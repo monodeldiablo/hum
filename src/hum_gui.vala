@@ -34,7 +34,6 @@
 using Config;
 using GLib;
 using Gtk;
-using DBus;
 
 namespace Hum
 {
@@ -124,9 +123,8 @@ namespace Hum
 		private int max_search_results_in_view = 5;
 		private int search_results_height = 0;
 
-		private DBus.Connection conn;
-		private dynamic DBus.Object player;
 		private Hum.QueryEngine query_engine;
+		private Hum.Player player;
 
 		/* DND-related bits. */
 		private const Gtk.TargetEntry[] target_list = {
@@ -141,125 +139,123 @@ namespace Hum
 		{
 			try
 			{
-				this.conn = DBus.Bus.get (DBus.BusType.SESSION);
+				// Fetch the player backend.
+				this.player = GLib.Bus.get_proxy_sync (BusType.SESSION,
+					"/org/washedup/Hum",
+					"org.washedup.Hum");
+
+				this.query_engine = new Hum.QueryEngine ();
+
+				// Construct the window and its child widgets from the UI definition.
+				Gtk.Builder builder = new Gtk.Builder ();
+				string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "main.ui");
+
+				try
+				{
+					builder.add_from_file (path);
+				}
+				catch (GLib.Error e)
+				{
+					stderr.printf ("Error loading the interface definition file: %s\n", e.message);
+					quit ();
+				}
+
+				// Create action groups.
+				this.global_actions = new Gtk.ActionGroup ("global_actions");
+				this.search_actions = new Gtk.ActionGroup ("search_actions");
+				this.playlist_actions = new Gtk.ActionGroup ("playlist_actions");
+				this.track_actions = new Gtk.ActionGroup ("track_actions");
+
+				// Assign actions to variables for signal handling.
+				this.open_action = (Gtk.Action) builder.get_object ("open_action");
+				this.save_action = (Gtk.Action) builder.get_object ("save_action");
+				this.save_as_action = (Gtk.Action) builder.get_object ("save_as_action");
+				this.properties_action = (Gtk.Action) builder.get_object ("properties_action");
+				this.quit_action = (Gtk.Action) builder.get_object ("quit_action");
+				this.cut_action = (Gtk.Action) builder.get_object ("cut_action");
+				this.copy_action = (Gtk.Action) builder.get_object ("copy_action");
+				this.paste_action = (Gtk.Action) builder.get_object ("paste_action");
+				this.select_all_action = (Gtk.Action) builder.get_object ("select_all_action");
+				this.deselect_all_action = (Gtk.Action) builder.get_object ("deselect_all_action");
+				this.add_action = (Gtk.Action) builder.get_object ("add_action");
+				this.remove_action = (Gtk.Action) builder.get_object ("remove_action");
+				this.clear_action = (Gtk.Action) builder.get_object ("clear_action");
+				this.preferences_action = (Gtk.Action) builder.get_object ("preferences_action");
+				this.about_action = (Gtk.Action) builder.get_object ("about_action");
+
+				// Assign the widgets to a variable for manipulation later.
+				this.window = (Gtk.Window) builder.get_object ("main_window");
+				this.status_bar = (Gtk.Statusbar) builder.get_object ("status_bar");
+				this.play_button = (Gtk.ToolButton) builder.get_object ("play_button");
+				this.pause_button = (Gtk.ToolButton) builder.get_object ("pause_button");
+				this.prev_button = (Gtk.ToolButton) builder.get_object ("prev_button");
+				this.next_button = (Gtk.ToolButton) builder.get_object ("next_button");
+				this.repeat_button = (Gtk.ToggleToolButton) builder.get_object ("repeat_button");
+				this.shuffle_button = (Gtk.ToggleToolButton) builder.get_object ("shuffle_button");
+				this.track_label = (Gtk.Label) builder.get_object ("track_label");
+				this.duration_label = (Gtk.Label) builder.get_object ("duration_label");
+				this.progress_slider = (Gtk.HScale) builder.get_object ("progress_slider");
+				this.search_entry = (Gtk.Entry) builder.get_object ("search_entry");
+				this.search_button = (Gtk.Button) builder.get_object ("search_button");
+				this.view_separator = (Gtk.VPaned) builder.get_object ("view_separator");
+
+				this.playlist_store = (Gtk.ListStore) builder.get_object ("playlist_store");
+				this.search_store = (Gtk.ListStore) builder.get_object ("search_store");
+
+				// Setup the search results list view.
+				this.search_view = new Hum.SearchView ();
+				this.search_view.set_model (this.search_store);
+				Gtk.ScrolledWindow scrolledwindow1 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow1");
+				scrolledwindow1.add (this.search_view);
+
+				// Setup the play list view.
+				// FIXME: The playlist should not need to know the Player class.
+				this.playlist_view = new PlayListView (this.player, this.search_view);
+				this.playlist_view.set_model (this.playlist_store);
+				Gtk.ScrolledWindow scrolledwindow2 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow2");
+				scrolledwindow2.add (this.playlist_view);
+
+				this.text_renderer = (Gtk.CellRendererText) builder.get_object ("text_renderer");
+				this.pixbuf_renderer = (Gtk.CellRendererPixbuf) builder.get_object ("pixbuf_renderer");
+
+				// Connect the stores to their corresponding views.
+				// FIXME: should be moved into the SearchView and PlayListView classes.
+				set_up_list_view (this.playlist_store, this.playlist_view);
+				set_up_list_view (this.search_store, this.search_view);
+
+				// Update the interface to reflect the backend.
+				set_up_interface ();
+
+				// Initialize the actions and action groups.
+				set_up_actions ();
+
+				// Hook up some signals.
+				set_up_signals ();
+
+				// If the application was launched with arguments, try
+				// to load them as tracks.
+				if (args.length > 1)
+				{
+					for (int i = 1; i < args.length; i++)
+					{
+						try
+						{
+							string uri = GLib.Filename.to_uri (args[i]);
+							this.player.add_track (uri, -1);
+						}
+						catch (GLib.ConvertError e)
+						{
+							critical ("Error converting %s to a URI: %s", args[i], e.message);
+						}
+					}
+
+					this.player.play (-1);
+				}
 			}
-			catch (DBus.Error e)
+			catch (GLib.IOError e)
 			{
 				critical ("Error connecting to the Hum daemon: %s", e.message);
 				quit ();
-			}
-
-			// Fetch the player backend.
-			this.player = conn.get_object ("org.washedup.Hum",
-				"/org/washedup/Hum",
-				"org.washedup.Hum");
-
-			this.query_engine = new Hum.QueryEngine ();
-
-			// Construct the window and its child widgets from the UI definition.
-			Gtk.Builder builder = new Gtk.Builder ();
-			string path = GLib.Path.build_filename (Config.PACKAGE_DATADIR, "main.ui");
-
-			try
-			{
-				builder.add_from_file (path);
-			}
-			catch (GLib.Error e)
-			{
-				stderr.printf ("Error loading the interface definition file: %s\n", e.message);
-				quit ();
-			}
-
-			// Create action groups.
-			this.global_actions = new Gtk.ActionGroup ("global_actions");
-			this.search_actions = new Gtk.ActionGroup ("search_actions");
-			this.playlist_actions = new Gtk.ActionGroup ("playlist_actions");
-			this.track_actions = new Gtk.ActionGroup ("track_actions");
-
-			// Assign actions to variables for signal handling.
-			this.open_action = (Gtk.Action) builder.get_object ("open_action");
-			this.save_action = (Gtk.Action) builder.get_object ("save_action");
-			this.save_as_action = (Gtk.Action) builder.get_object ("save_as_action");
-			this.properties_action = (Gtk.Action) builder.get_object ("properties_action");
-			this.quit_action = (Gtk.Action) builder.get_object ("quit_action");
-			this.cut_action = (Gtk.Action) builder.get_object ("cut_action");
-			this.copy_action = (Gtk.Action) builder.get_object ("copy_action");
-			this.paste_action = (Gtk.Action) builder.get_object ("paste_action");
-			this.select_all_action = (Gtk.Action) builder.get_object ("select_all_action");
-			this.deselect_all_action = (Gtk.Action) builder.get_object ("deselect_all_action");
-			this.add_action = (Gtk.Action) builder.get_object ("add_action");
-			this.remove_action = (Gtk.Action) builder.get_object ("remove_action");
-			this.clear_action = (Gtk.Action) builder.get_object ("clear_action");
-			this.preferences_action = (Gtk.Action) builder.get_object ("preferences_action");
-			this.about_action = (Gtk.Action) builder.get_object ("about_action");
-
-			// Assign the widgets to a variable for manipulation later.
-			this.window = (Gtk.Window) builder.get_object ("main_window");
-			this.status_bar = (Gtk.Statusbar) builder.get_object ("status_bar");
-			this.play_button = (Gtk.ToolButton) builder.get_object ("play_button");
-			this.pause_button = (Gtk.ToolButton) builder.get_object ("pause_button");
-			this.prev_button = (Gtk.ToolButton) builder.get_object ("prev_button");
-			this.next_button = (Gtk.ToolButton) builder.get_object ("next_button");
-			this.repeat_button = (Gtk.ToggleToolButton) builder.get_object ("repeat_button");
-			this.shuffle_button = (Gtk.ToggleToolButton) builder.get_object ("shuffle_button");
-			this.track_label = (Gtk.Label) builder.get_object ("track_label");
-			this.duration_label = (Gtk.Label) builder.get_object ("duration_label");
-			this.progress_slider = (Gtk.HScale) builder.get_object ("progress_slider");
-			this.search_entry = (Gtk.Entry) builder.get_object ("search_entry");
-			this.search_button = (Gtk.Button) builder.get_object ("search_button");
-			this.view_separator = (Gtk.VPaned) builder.get_object ("view_separator");
-
-			this.playlist_store = (Gtk.ListStore) builder.get_object ("playlist_store");
-			this.search_store = (Gtk.ListStore) builder.get_object ("search_store");
-
-			// Setup the search results list view.
-			this.search_view = new Hum.SearchView ();
-			this.search_view.set_model (this.search_store);
-			Gtk.ScrolledWindow scrolledwindow1 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow1");
-			scrolledwindow1.add (this.search_view);
-
-			// Setup the play list view.
-			// FIXME: The playlist should not need to know the Player class.
-			this.playlist_view = new PlayListView (this.player, this.search_view);
-			this.playlist_view.set_model (this.playlist_store);
-			Gtk.ScrolledWindow scrolledwindow2 = (Gtk.ScrolledWindow) builder.get_object ("scrolledwindow2");
-			scrolledwindow2.add (this.playlist_view);
-
-			this.text_renderer = (Gtk.CellRendererText) builder.get_object ("text_renderer");
-			this.pixbuf_renderer = (Gtk.CellRendererPixbuf) builder.get_object ("pixbuf_renderer");
-
-			// Connect the stores to their corresponding views.
-			// FIXME: should be moved into the SearchView and PlayListView classes.
-			set_up_list_view (this.playlist_store, this.playlist_view);
-			set_up_list_view (this.search_store, this.search_view);
-
-			// Update the interface to reflect the backend.
-			set_up_interface ();
-
-			// Initialize the actions and action groups.
-			set_up_actions ();
-
-			// Hook up some signals.
-			set_up_signals ();
-
-			// If the application was launched with arguments, try
-			// to load them as tracks.
-			if (args.length > 1)
-			{
-				for (int i = 1; i < args.length; i++)
-				{
-					try
-					{
-						string uri = GLib.Filename.to_uri (args[i]);
-						this.player.AddTrack (uri, -1);
-					}
-					catch (GLib.ConvertError e)
-					{
-						critical ("Error converting %s to a URI: %s", args[i], e.message);
-					}
-				}
-
-				this.player.Play (-1);
 			}
 		}
 
@@ -322,25 +318,25 @@ namespace Hum
 			this.playlist_view.key_press_event.connect (handle_playlist_view_key_pressed);
 
 			// Signals from hum-player.
-			this.player.PlayingTrack.connect (handle_playing_track);
-			this.player.PausedPlayback.connect (handle_paused_playback);
-			this.player.StoppedPlayback.connect (handle_stopped_playback);
-			this.player.Seeked.connect (handle_seeked);
-			this.player.RepeatToggled.connect (handle_repeat_toggled);
-			this.player.ShuffleToggled.connect (handle_shuffle_toggled);
-			this.player.TrackAdded.connect (handle_track_added);
-			this.player.TrackRemoved.connect (handle_track_removed);
-			this.player.Exiting.connect (quit);
+			this.player.playing_track.connect (handle_playing_track);
+			this.player.paused_playback.connect (handle_paused_playback);
+			this.player.stopped_playback.connect (handle_stopped_playback);
+			this.player.seeked.connect (handle_seeked);
+			this.player.repeat_toggled.connect (handle_repeat_toggled);
+			this.player.shuffle_toggled.connect (handle_shuffle_toggled);
+			this.player.track_added.connect (handle_track_added);
+			this.player.track_removed.connect (handle_track_removed);
+			this.player.exiting.connect (quit);
 		}
 
 		// Bring the interface up to date with the back end.
 		private void set_up_interface ()
 		{
-			string[] uris = this.player.GetPlaylist ();
-			string playback_status = this.player.GetPlaybackStatus ();
-			int position = this.player.GetCurrentTrack ();
-			bool repeat_toggled = this.player.GetRepeat ();
-			bool shuffle_toggled = this.player.GetShuffle ();
+			string[] uris = this.player.get_playlist ();
+			string playback_status = this.player.get_playback_status ();
+			int position = this.player.get_current_track ();
+			bool repeat_toggled = this.player.get_repeat ();
+			bool shuffle_toggled = this.player.get_shuffle ();
 
 			foreach (string uri in uris)
 			{
@@ -436,7 +432,7 @@ namespace Hum
 			if (view == this.playlist_view)
 			{
 				// Set up the image in the header of the status_or_add_to_playlist column.
-				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.STOCK_MEDIA_PLAY, Gtk.IconSize.MENU);
+				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.Stock.MEDIA_PLAY, Gtk.IconSize.MENU);
 
 				// Set up drag and drop receivership. The playlist view should be able to
 				// receive dragged items from inside the widget (other rows), other
@@ -451,7 +447,7 @@ namespace Hum
 			else
 			{
 				// Set up the image in the header of the status_or_add_to_playlist column.
-				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.STOCK_ADD, Gtk.IconSize.MENU);
+				status_or_add_to_playlist_header = new Gtk.Image.from_stock (Gtk.Stock.ADD, Gtk.IconSize.MENU);
 
 				// Set up drag and drop sender capability. Items from here should only be
 				// draggable to the playlist.
@@ -648,7 +644,7 @@ namespace Hum
 
 		private void set_up_playing_state (int position)
 		{
-			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
+			Hum.Track track = this.query_engine.make_track (this.player.get_current_uri ());
 
 			// Set the various text bits to reflect the current song.
 			this.window.title = "%s - %s".printf(track.artist, track.title);
@@ -688,7 +684,7 @@ namespace Hum
 
 		private void set_up_paused_state (int position)
 		{
-			Hum.Track track = this.query_engine.make_track (this.player.GetCurrentUri ());
+			Hum.Track track = this.query_engine.make_track (this.player.get_current_uri ());
 
 			// Set the 'paused' icon in the row of the track that's paused.
 			Gtk.TreePath path = new Gtk.TreePath.from_indices (position, -1);
@@ -762,15 +758,15 @@ namespace Hum
 			Gtk.TreeSelection playlist_select = this.playlist_view.get_selection ();
 			bool is_selected = playlist_select.get_selected (out model, out selection);
 			bool selection_is_valid = this.playlist_store.iter_is_valid (selection);
-			string status = this.player.GetPlaybackStatus ();
+			string status = this.player.get_playback_status ();
 			int track = -1;
 
 			// If playback is currently paused and the selected track is also the
 			// playing track, just resume.
 			if (is_selected && selection_is_valid)
 			{
-				int position = this.playlist_store.get_path (selection).to_string ().to_int ();
-				int current_position = this.player.GetCurrentTrack ();
+				int position = int.parse (this.playlist_store.get_path (selection).to_string ());
+				int current_position = this.player.get_current_track ();
 
 				if (status != "PAUSED" || position != current_position)
 				{
@@ -778,7 +774,7 @@ namespace Hum
 				}
 			}
 
-			this.player.Play (track);
+			this.player.play (track);
 		}
 
 		private void add_track_to_view (Gtk.ListStore store, string uri, int position = -1)
@@ -802,10 +798,10 @@ namespace Hum
 				Columns.ALBUM, track.album,
 				Columns.TRACK, track.track_number.to_string (),
 				Columns.GENRE, track.genre,
-				Columns.RELEASE_DATE, Time.gm ((time_t) track.release_date.to_int ()).year.to_string (),
+				Columns.RELEASE_DATE, Time.gm ((time_t) int.parse (track.release_date)).year.to_string (),
 				Columns.DURATION, usec_to_string (track.duration),
-				Columns.BITRATE, "%d kbps".printf (track.bitrate.to_int () / 1000),
-				Columns.FILE_SIZE, "%0.2f MB".printf ((track.file_size.to_int ()) / (1024.0 * 1024.0)),
+				Columns.BITRATE, "%d kbps".printf (int.parse (track.bitrate) / 1000),
+				Columns.FILE_SIZE, "%0.2f MB".printf (int.parse (track.file_size) / (1024.0 * 1024.0)),
 				-1);
 		}
 
@@ -827,7 +823,7 @@ namespace Hum
 			// url, title, artist, album, genre, track, duration
 
 			// Create a MM:SS string for the duration
-			int seconds = track[6].to_int ();
+			int seconds = int.parse (track[6]);
 			int minutes = seconds / 60;
 			string duration = "%d:%02d".printf (minutes, seconds % 60);
 
@@ -875,8 +871,8 @@ namespace Hum
 
 		private bool update_track_progress ()
 		{
-			string status = this.player.GetPlaybackStatus ();
-			int64 progress = this.player.GetProgress ();
+			string status = this.player.get_playback_status ();
+			int64 progress = this.player.get_progress ();
 
 			set_track_position (progress);
 
@@ -893,7 +889,7 @@ namespace Hum
 				//       following sleep hack, which should allow GStreamer to catch up to
 				//       the seek and resume the "PLAYING" state.
 				GLib.Thread.usleep(50);
-				status = this.player.GetPlaybackStatus ();
+				status = this.player.get_playback_status ();
 
 				if (status == "PLAYING")
 				{
@@ -985,14 +981,14 @@ namespace Hum
 			if (this.search_store.iter_is_valid (iter))
 			{
 				this.search_store.get_value (iter, Columns.URI, out uri);
-				this.player.AddTrack ((string) uri, -1);
+				this.player.add_track ((string) uri, -1);
 			}
 		}
 
 		public void handle_playlist_view_selected (Gtk.TreePath path, Gtk.TreeViewColumn column)
 		{
-			int track = path.to_string ().to_int ();
-			this.player.Play (track);
+			int track = int.parse (path.to_string ());
+			this.player.play (track);
 		}
 
 		// FIXME: Replace this with global keybindings, because this totally screws
@@ -1008,7 +1004,7 @@ namespace Hum
 
 			if (this.playlist_store.iter_is_valid (selection))
 			{
-				position = this.playlist_store.get_path (selection).to_string ().to_int ();
+				position = int.parse (this.playlist_store.get_path (selection).to_string ());
 			}
 
 			switch (event.hardware_keycode)
@@ -1017,7 +1013,7 @@ namespace Hum
 				case 119:
 					if (position >= 0)
 					{
-						this.player.RemoveTrack (position);
+						this.player.remove_track (position);
 					}
 					break;
 
@@ -1025,16 +1021,16 @@ namespace Hum
 				case 36:
 					if (position >= 0)
 					{
-						this.player.Play (position);
+						this.player.play (position);
 					}
 					break;
 
 				// "space" was pressed
 				case 65:
-					string status = this.player.GetPlaybackStatus ();
+					string status = this.player.get_playback_status ();
 					if (status == "PLAYING")
 					{
-						this.player.Pause ();
+						this.player.pause ();
 					}
 
 					else if (status == "PAUSED")
@@ -1081,24 +1077,24 @@ namespace Hum
 		// Pass along the command to pause playback.
 		public void handle_pause_clicked ()
 		{
-			this.player.Pause ();
+			this.player.pause ();
 		}
 
 		// Pass along the command to play the previous track.
 		public void handle_prev_clicked ()
 		{
-			this.player.Previous ();
+			this.player.previous ();
 		}
 
 		// Pass along the command to play the next track.
 		public void handle_next_clicked ()
 		{
-			this.player.Next ();
+			this.player.next ();
 		}
 
 		public void handle_repeat_clicked ()
 		{
-			this.player.SetRepeat (this.repeat_button.active);
+			this.player.set_repeat (this.repeat_button.active);
 
 			// Change the sensitivity of the previous and next buttons at the extremes
 			// of the playlist to reflect the (dis)ability to loop.
@@ -1106,12 +1102,12 @@ namespace Hum
 			{
 				Gtk.TreePath path = this.playlist_store.get_path (this.current_iter);
 
-				if (path.to_string ().to_int () == 0)
+				if (int.parse (path.to_string ()) == 0)
 				{
 					this.prev_button.sensitive = this.repeat_button.active;
 				}
 
-				else if (path.to_string ().to_int () == this.playlist_store.length - 1)
+				else if (int.parse (path.to_string ()) == this.playlist_store.length - 1)
 				{
 					this.next_button.sensitive = this.repeat_button.active;
 				}
@@ -1120,7 +1116,7 @@ namespace Hum
 
 		public void handle_shuffle_clicked ()
 		{
-			this.player.SetShuffle (this.shuffle_button.active);
+			this.player.set_shuffle (this.shuffle_button.active);
 		}
 
 		public void handle_slider_value_changed ()
@@ -1133,7 +1129,7 @@ namespace Hum
 			if (position > (this.current_progress + this.update_period) ||
 				position < this.current_progress)
 			{
-				this.player.Seek ((int64) position);
+				this.player.seek ((int64) position);
 			}
 			else
 			{
@@ -1155,15 +1151,25 @@ namespace Hum
 			{
 				return;
 			}
-			string[][]? tracks = this.query_engine.search (terms);
+			string[,]? tracks = this.query_engine.search (terms);
 
-			if (tracks.length > 0)
+			if (tracks.length[0] > 0)
 			{
-				double step = 1.0 / (double) tracks.length;
+				double step = 1.0 / (double) tracks.length[0];
 
-				for (int i = 0; i < tracks.length; i++)
+				for (int i = 0; i < tracks.length[0]; i++)
 				{
-					add_track_to_view_from_array (this.search_store, tracks[i]);
+					// FIXME: This must be done because Vala has no support for getting one-
+					//        dimensional arrays from multi-dimensional arrays.
+					string[] temp_track = {};
+
+					for (int j = 0; j < tracks.length[1]; j++)
+					{
+						temp_track += tracks[i,j];
+					}
+
+					add_track_to_view_from_array (this.search_store, temp_track);
+
 					// FIXME: The progress is hardly visible since only one fast query is used.
 					this.search_entry.set_progress_fraction (this.search_entry.get_progress_fraction () + step);
 				}
@@ -1188,14 +1194,14 @@ namespace Hum
 			this.animate_timeout_id = (int) GLib.Timeout.add (this.animate_period, shrink_search_pane);
 		}
 
-		public void handle_playing_track (dynamic DBus.Object player, int position)
+		public void handle_playing_track (Hum.Player player, int position)
 		{
 			set_up_playing_state (position);
 		}
 
 		public void handle_paused_playback ()
 		{
-			set_up_paused_state (this.player.GetCurrentTrack ());
+			set_up_paused_state (this.player.get_current_track ());
 		}
 
 		public void handle_stopped_playback ()
@@ -1203,34 +1209,34 @@ namespace Hum
 			set_up_stopped_state ();
 		}
 
-		public void handle_seeked (dynamic DBus.Object player, int64 usec)
+		public void handle_seeked (Hum.Player player, int64 usec)
 		{
 			set_track_position (usec);
 		}
 
-		public void handle_repeat_toggled (dynamic DBus.Object player, bool do_repeat)
+		public void handle_repeat_toggled (Hum.Player player, bool do_repeat)
 		{
 			this.repeat_button.active = do_repeat;
 		}
 
-		public void handle_shuffle_toggled (dynamic DBus.Object player, bool do_shuffle)
+		public void handle_shuffle_toggled (Hum.Player player, bool do_shuffle)
 		{
 			this.shuffle_button.active = do_shuffle;
 		}
 
-		public void handle_track_added (dynamic DBus.Object player, string uri, int position)
+		public void handle_track_added (Hum.Player player, string uri, int position)
 		{
 			add_track_to_view (this.playlist_store, uri, position);
 		}
 
-		public void handle_track_removed (dynamic DBus.Object player, int position)
+		public void handle_track_removed (Hum.Player player, int position)
 		{
 			remove_track_from_view (this.playlist_store, position);
 		}
 
 		public void quit ()
 		{
-			this.player.Quit ();
+			this.player.quit ();
 			Gtk.main_quit ();
 		}
 	}

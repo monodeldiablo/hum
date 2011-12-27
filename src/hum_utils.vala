@@ -116,8 +116,8 @@ namespace Hum
 		model.get (a, Columns.TRACK, out track_a);
 		model.get (b, Columns.TRACK, out track_b);
 
-		num_a = track_a.to_int ();
-		num_b = track_b.to_int ();
+		num_a = int.parse (track_a);
+		num_b = int.parse (track_b);
 
 		if (num_a != num_b)
 		{
